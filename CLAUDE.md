@@ -14,13 +14,14 @@ Neovim plugin that sends a message (optionally starting with an `@path#Lstart-en
 
 Modules under `lua/herdr-send/`:
 
-- `init.lua`: public API only (`send`, `send_selection`, `setup`).
+- `init.lua`: public API only (`send`, `send_selection`, `attach`, `setup`).
 - `config.lua`: defaults in `options`. `setup` replaces `options`, so read `require("herdr-send.config").options` at call time, never cache it at module load.
-- `core.lua`: pure functions (`parse`, `is_agent`, `group_spaces`, `only_agent`, `same_space`, `ref_for`, `ref`, `last_first`, `initial_lines`, `retarget`, `keys`, `model_label`). Put new logic here when it can be tested without Neovim UI or `hc`.
+- `core.lua`: pure functions (`parse`, `is_agent`, `group_spaces`, `only_agent`, `same_space`, `ref_for`, `ref`, `last_first`, `initial_lines`, `retarget`, `keys`, `compose_size`, `model_label`). Put new logic here when it can be tested without Neovim UI or `hc`.
 - `ui/render.lua`: picker visuals. `chip` and `tab_chunks` are pure and tested; `set_chip_hl` and `draw_tabs` touch highlights and windows.
 - `hc.lua`: `run` wraps the `hc` CLI; `read_last` / `write_last` persist the last-sent address.
 - `ui/picker.lua`: calls `hc get $HC_TERMINAL_ID --json` to find the current space and `hc ls --json` to list terminals, then builds a snacks.nvim picker with one tab per space.
 - `ui/compose.lua`: opens a floating markdown buffer and sends with `hc send <address> -- <text>`.
+- `ui/terminal.lua`: opens a floating terminal running `hc attach <address>`; deleting the buffer ends the job, which detaches.
 
 `tests/run.lua` covers `core` and `ui/render`.
 
