@@ -67,7 +67,7 @@ function M.ref_for(sel, same_space)
 end
 
 function M.ref(path, a, b)
-  if not a then return "@" .. path end
+  if not a or a == b then return "@" .. path end
   if a > b then a, b = b, a end
   return ("@%s#L%d-%d"):format(path, a, b)
 end

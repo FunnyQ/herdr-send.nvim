@@ -80,6 +80,7 @@ eq("same_space only for a local agent in the current space", {
 local sel = { rel = "src/a.lua", abs = "/Users/q/p/src/a.lua", a = 9, b = 3 }
 eq("ref_for same space uses relative path", M.ref_for(sel, true), "@src/a.lua#L3-9")
 eq("ref_for other space uses absolute path", M.ref_for(sel, false), "@/Users/q/p/src/a.lua#L3-9")
+eq("ref single line is file only", M.ref("src/a.lua", 5, 5), "@src/a.lua")
 eq("ref_for without selection", M.ref_for(nil, true), nil)
 
 eq("ref file", M.ref("src/a.lua"), "@src/a.lua")
