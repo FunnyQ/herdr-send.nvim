@@ -5,6 +5,13 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-11-06
+
+_tracks tag `v0.1.1`_
+
+### Fixed
+- The agent preview window no longer wraps long lines or shows an empty gutter on the left, so the terminal snapshot renders like the agent's own pane.
+
 ## [0.1.0] - 2026-11-06
 
 _tracks tag `v0.1.0`_
