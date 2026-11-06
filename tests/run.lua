@@ -1,5 +1,6 @@
 package.path = "lua/?.lua;lua/?/init.lua;" .. package.path
-local M = require("herdr-send")
+local M = require("herdr-send.core")
+local render = require("herdr-send.ui.render")
 
 local failures = 0
 local function eq(name, got, want)
@@ -81,19 +82,19 @@ eq("last_first keeps order without match", vim.tbl_map(function(t) return t.addr
 eq("last_first keeps order without last", vim.tbl_map(function(t) return t.address end, M.last_first(list, nil)),
   { "t1", "omarchy/t2", "t3" })
 
-eq("chip wraps a label in slanted caps", M.chip("omarchy", "Remote", 9), {
+eq("chip wraps a label in slanted caps", render.chip("omarchy", "Remote", 9), {
   { "\u{e0ba}", "HerdrSendChipRemoteCap" },
   { " omarchy   ", "HerdrSendChipRemote" },
   { "\u{e0bc}", "HerdrSendChipRemoteCap" },
 })
-eq("tab_chunks draws rectangles and marks the active space", M.tab_chunks({ "p", "work" }, 2, 80), {
+eq("tab_chunks draws rectangles and marks the active space", render.tab_chunks({ "p", "work" }, 2, 80), {
   { " p ", "HerdrSendChipTab" }, { " ", "FloatTitle" }, { " work ", "HerdrSendChipTabActive" },
 })
-eq("tab_chunks keeps the active tab visible when narrow", M.tab_chunks({ "aaaa", "bbbb", "cccc", "dddd" }, 1, 14), {
+eq("tab_chunks keeps the active tab visible when narrow", render.tab_chunks({ "aaaa", "bbbb", "cccc", "dddd" }, 1, 14), {
   { " aaaa ", "HerdrSendChipTabActive" }, { " ", "FloatTitle" }, { " bbbb ", "HerdrSendChipTab" },
   { " \u{2026}", "FloatTitle" },
 })
-eq("tab_chunks marks hidden tabs on both sides", M.tab_chunks({ "aaaa", "bbbb", "cccc", "dddd" }, 3, 14), {
+eq("tab_chunks marks hidden tabs on both sides", render.tab_chunks({ "aaaa", "bbbb", "cccc", "dddd" }, 3, 14), {
   { "\u{2026} ", "FloatTitle" },
   { " bbbb ", "HerdrSendChipTab" }, { " ", "FloatTitle" }, { " cccc ", "HerdrSendChipTabActive" },
   { " \u{2026}", "FloatTitle" },
