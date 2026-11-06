@@ -16,6 +16,7 @@ _tracks tag `v0.3.0`_
 
 ### Changed
 - Neovim 0.11 or newer is now required, because the attach terminal depends on it.
+- `q` in normal mode no longer cancels the compose window; press `close_key` (default `<C-q>`) instead.
 
 ## [0.2.1] - 2026-11-06
 
