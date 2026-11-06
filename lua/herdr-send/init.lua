@@ -295,6 +295,8 @@ function M.pick(sel)
       ctx.preview:set_lines(lines)
       vim.wo[ctx.win].number = false
       vim.wo[ctx.win].relativenumber = false
+      vim.wo[ctx.win].wrap = false
+      vim.wo[ctx.win].signcolumn = "no"
       vim.api.nvim_win_call(ctx.win, function()
         vim.api.nvim_win_set_cursor(0, { #lines, 0 })
         vim.cmd("normal! zb")
