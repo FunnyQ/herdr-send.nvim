@@ -92,6 +92,14 @@ function M.retarget(lines, old_ref, new_ref)
   return out
 end
 
+-- a terminal cell is about twice as tall as it is wide, so 4:3 landscape is rows = cols * 3 / 4 / 2
+local rows_per_col = 3 / 4 / 2
+
+function M.compose_size(max_width, avail_width, avail_height)
+  local width = math.min(max_width, avail_width, math.floor(avail_height / rows_per_col))
+  return { width = width, height = math.min(avail_height, math.floor(width * rows_per_col + 0.5)) }
+end
+
 function M.model_label(argv)
   local function flag(name)
     for i, arg in ipairs(argv) do

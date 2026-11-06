@@ -120,4 +120,8 @@ eq("model_label equals form", M.model_label({ "codex", "--model=gpt-5" }), "gpt-
 eq("model_label ignores flags inside other tokens", M.model_label({ "env", "X=--model foo", "claude" }), "-")
 eq("model_label none", M.model_label({ "claude" }), "-")
 
+eq("compose_size caps width on a large editor", M.compose_size(80, 198, 100), { width = 80, height = 30 })
+eq("compose_size shrinks width to fit height", M.compose_size(80, 198, 20), { width = 53, height = 20 })
+eq("compose_size shrinks to a narrow editor", M.compose_size(80, 50, 100), { width = 50, height = 19 })
+
 os.exit(failures == 0 and 0 or 1)
