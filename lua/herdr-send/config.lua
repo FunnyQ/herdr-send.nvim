@@ -12,6 +12,11 @@ M.options = {
     tab_hl = "TabLine",
     tab_active_hl = "TabLineSel",
   },
+  new_agents = {
+    { name = "claude", cmd = { "claude" } },
+    { name = "codex", cmd = { "codex" } },
+    { name = "opencode", cmd = { "opencode" } },
+  },
   split_machines = false,
   filter = nil,
 }

@@ -53,6 +53,14 @@ function M.only_agent(groups, current)
   if g and current and g.name == current and #g.agents == 1 then return g.agents[1] end
 end
 
+function M.with_new_agents(groups, current, new_agents)
+  if not current or #new_agents == 0 then return groups end
+  for _, g in ipairs(groups) do
+    if g.name == current then return groups end
+  end
+  return { { name = current, agents = {}, new = new_agents }, unpack(groups) }
+end
+
 function M.keys(key)
   return type(key) == "table" and key or { key }
 end

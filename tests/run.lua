@@ -120,6 +120,18 @@ eq("model_label equals form", M.model_label({ "codex", "--model=gpt-5" }), "gpt-
 eq("model_label ignores flags inside other tokens", M.model_label({ "env", "X=--model foo", "claude" }), "-")
 eq("model_label none", M.model_label({ "claude" }), "-")
 
+local new = { { name = "claude", cmd = { "claude" } } }
+local other = { name = "other", agents = { { address = "t2" } } }
+eq("with_new_agents adds an empty current space first", M.with_new_agents({ other }, "p", new),
+  { { name = "p", agents = {}, new = new }, other })
+eq("with_new_agents adds the current space when no agent exists anywhere", M.with_new_agents({}, "p", new),
+  { { name = "p", agents = {}, new = new } })
+eq("with_new_agents skips a current space that has agents",
+  M.with_new_agents({ { name = "p", agents = { { address = "t1" } } } }, "p", new),
+  { { name = "p", agents = { { address = "t1" } } } })
+eq("with_new_agents skips outside herdr-app", M.with_new_agents({ other }, nil, new), { other })
+eq("with_new_agents skips when no harness is installed", M.with_new_agents({ other }, "p", {}), { other })
+
 eq("compose_size caps width on a large editor", M.compose_size(80, 198, 100), { width = 80, height = 30 })
 eq("compose_size shrinks width to fit height", M.compose_size(80, 198, 20), { width = 53, height = 20 })
 eq("compose_size shrinks to a narrow editor", M.compose_size(80, 50, 100), { width = 50, height = 19 })

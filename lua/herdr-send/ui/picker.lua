@@ -3,6 +3,7 @@ local core = require("herdr-send.core")
 local hc = require("herdr-send.hc")
 local render = require("herdr-send.ui.render")
 local compose = require("herdr-send.ui.compose")
+local terminal = require("herdr-send.ui.terminal")
 
 local function pick(sel, draft, action)
   local opts = config.options
@@ -13,12 +14,25 @@ local function pick(sel, draft, action)
     return core.is_agent(t, vim.env.HC_TERMINAL_ID) and (not opts.filter or opts.filter(t))
   end, vim.json.decode(hc.run({ "ls", "--json" })).terminals)
   local last = hc.read_last()
-  local groups = core.group_spaces(core.last_first(agents, last), current, opts.split_machines)
+  local installed = vim.tbl_filter(function(a) return vim.fn.executable(a.cmd[1]) == 1 end, opts.new_agents)
+  local groups = core.with_new_agents(core.group_spaces(core.last_first(agents, last), current, opts.split_machines), current, installed)
   if #groups == 0 then
     vim.notify("No herdr agent found", vim.log.levels.WARN)
     return
   end
+  local function spawn(new)
+    -- hc run inherits the herdr-core server's env, not Neovim's; a login shell restores the user's PATH as herdr-app panes do
+    local shell = vim.env.SHELL or "/bin/sh"
+    local out = hc.run(vim.list_extend({ "run", "--bg", "--json", "--", shell, "-lic", '"$@"', shell }, vim.deepcopy(new.cmd)))
+    if vim.v.shell_error ~= 0 then
+      vim.notify("hc run failed: " .. out, vim.log.levels.ERROR)
+      return
+    end
+    local address = vim.json.decode(out).address
+    terminal(vim.tbl_extend("force", core.parse({ address = address, agent = new.name, where = self_where }), { t = { address = address } }))
+  end
   local function open(item)
+    if item.new then return spawn(item.new) end
     if action then return action(item) end
     local ref = core.ref_for(sel, core.same_space(item, current))
     local lines = draft and core.retarget(draft.lines, draft.ref, ref) or core.initial_lines(ref)
@@ -69,6 +83,9 @@ local function pick(sel, draft, action)
       },
     },
     finder = function()
+      if groups[idx].new then
+        return vim.tbl_map(function(new) return { new = new, text = new.name } end, groups[idx].new)
+      end
       return vim.tbl_map(function(t)
         local p = core.parse(t)
         return vim.tbl_extend("force", p, {
@@ -79,6 +96,11 @@ local function pick(sel, draft, action)
       end, groups[idx].agents)
     end,
     preview = function(ctx)
+      if ctx.item.new then
+        ctx.preview:reset()
+        ctx.preview:set_lines({ "Start in a new terminal under Neovim:", "", table.concat(ctx.item.new.cmd, " ") })
+        return
+      end
       local addr = ctx.item.t.address
       screens[addr] = screens[addr] or vim.trim(hc.run({ "read", addr }))
       ctx.preview:reset()
@@ -102,6 +124,7 @@ local function pick(sel, draft, action)
       list = { keys = { h = "space_prev", l = "space_next", ["<Left>"] = "space_prev", ["<Right>"] = "space_next" } },
     },
     format = function(item)
+      if item.new then return { { "＋ New " .. item.new.name, "Function" } } end
       local kind = item.machine == "local" and "Local" or "Remote"
       local ret = {
         { ("%-8s "):format(item.agent), "Function" },

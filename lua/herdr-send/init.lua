@@ -23,6 +23,7 @@ function M.setup(opts)
   config.options = vim.tbl_deep_extend("force", config.options, opts)
   -- older Neovim merges list tables by index in tbl_deep_extend; a user key list must replace the default whole
   config.options.send_key = opts.send_key or config.options.send_key
+  config.options.new_agents = opts.new_agents or config.options.new_agents
 end
 
 return M
