@@ -53,6 +53,10 @@ function M.only_agent(groups, current)
   if g and current and g.name == current and #g.agents == 1 then return g.agents[1] end
 end
 
+function M.keys(key)
+  return type(key) == "table" and key or { key }
+end
+
 function M.same_space(item, current)
   return item.machine == "local" and item.space == current
 end

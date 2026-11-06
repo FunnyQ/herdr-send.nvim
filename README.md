@@ -21,6 +21,8 @@ The picker groups agents by herdr-app space, on this machine and on remote `hc` 
   keys = {
     { "<C-s>", function() require("herdr-send").send() end, desc = "Send message to agent" },
     { "<C-s>", function() require("herdr-send").send_selection() end, mode = "v", desc = "Send selection to agent" },
+    { "<D-CR>", function() require("herdr-send").send() end, desc = "Send message to agent" },
+    { "<D-CR>", function() require("herdr-send").send_selection() end, mode = "v", desc = "Send selection to agent" },
   },
 }
 ```
@@ -32,7 +34,7 @@ The plugin binds no global keys. Bind `send` and `send_selection` yourself.
 1. Press your key in normal mode to write a plain message, or in visual mode to start it with `@path#Lstart-end`.
 2. Press `h`/`l` or `<Left>`/`<Right>` to switch space. Pick an agent with `j`/`k` and `<CR>`. The agent you last sent to sits at the top of its space and carries a `last sent` chip. Press `i` to search. Each row shows the agent, its `model/effort`, tab, status, machine, and terminal id. The preview shows the agent's current screen. When the space Neovim runs in holds exactly one agent, the picker is skipped and step 3 opens directly.
 3. Write the message. From visual mode, the first line holds the reference: a cwd-relative path for a local agent in the current space, an absolute path for any other agent. Edit or delete it as needed.
-4. Press `send_key` to send, or `q` in normal mode to cancel. Press `back_key` in normal mode to return to the picker with the message kept. When the first line is still the untouched reference, it is rewritten for the agent you pick next.
+4. Press a `send_key` to send, or `q` in normal mode to cancel. Press `back_key` in normal mode to return to the picker with the message kept. When the first line is still the untouched reference, it is rewritten for the agent you pick next.
 
 `hc send` pastes the text and presses Enter, so the agent starts its turn at once.
 
@@ -40,7 +42,7 @@ The plugin binds no global keys. Bind `send` and `send_selection` yourself.
 
 ```lua
 {
-  send_key = "<C-s>",                                      -- sends from the message window
+  send_key = { "<C-s>", "<D-CR>" },                        -- key or list of keys that send from the message window; the footer shows the first
   back_key = "<BS>",                                       -- normal mode: returns from the message window to the picker
   chip = {                       -- highlight groups whose background colors each chip
     local_hl = "DiffAdd",          -- machine chip, this machine

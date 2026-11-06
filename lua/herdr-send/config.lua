@@ -1,7 +1,7 @@
 local M = {}
 
 M.options = {
-  send_key = "<C-s>",
+  send_key = { "<C-s>", "<D-CR>" },
   back_key = "<BS>",
   chip = {
     local_hl = "DiffAdd",

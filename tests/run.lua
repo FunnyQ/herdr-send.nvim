@@ -68,6 +68,9 @@ eq("retarget keeps an edited reference", M.retarget({ "see a.lua", "hi" }, "@a.l
   { "see a.lua", "hi" })
 eq("retarget keeps lines without a reference", M.retarget({ "hi" }, nil, nil), { "hi" })
 
+eq("keys wraps a single key", M.keys("<C-s>"), { "<C-s>" })
+eq("keys keeps a list", M.keys({ "<C-s>", "<D-CR>" }), { "<C-s>", "<D-CR>" })
+
 eq("same_space only for a local agent in the current space", {
   M.same_space({ machine = "local", space = "p" }, "p"),
   M.same_space({ machine = "omarchy", space = "p" }, "p"),

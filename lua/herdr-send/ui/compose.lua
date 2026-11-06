@@ -1,8 +1,9 @@
 local config = require("herdr-send.config")
+local core = require("herdr-send.core")
 local hc = require("herdr-send.hc")
 
 return function(item, lines, back)
-  local send_key, back_key = config.options.send_key, config.options.back_key
+  local send_keys, back_key = core.keys(config.options.send_key), config.options.back_key
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].filetype = "markdown"
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
@@ -12,12 +13,12 @@ return function(item, lines, back)
     width = width, height = height,
     row = math.floor((vim.o.lines - height) / 2), col = math.floor((vim.o.columns - width) / 2),
     title = (" → %s · %s "):format(item.agent, item.tab), title_pos = "center",
-    footer = (" %s send · %s agents · q cancel "):format(send_key, back_key), footer_pos = "center",
+    footer = (" %s send · %s agents · q cancel "):format(send_keys[1], back_key), footer_pos = "center",
   })
   vim.wo[win].wrap = true
   vim.api.nvim_win_set_cursor(win, { #lines, 0 })
   vim.cmd.startinsert()
-  vim.keymap.set({ "n", "i" }, send_key, function()
+  local function send()
     local text = vim.trim(table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false), "\n"))
     vim.cmd.stopinsert()
     vim.api.nvim_win_close(win, true)
@@ -32,7 +33,10 @@ return function(item, lines, back)
     end
     hc.write_last(item.t.address)
     vim.notify(("Sent to %s · %s (%s)"):format(item.agent, item.tab, item.t.address))
-  end, { buffer = buf })
+  end
+  for _, key in ipairs(send_keys) do
+    vim.keymap.set({ "n", "i" }, key, send, { buffer = buf })
+  end
   vim.keymap.set("n", back_key, function()
     local edited = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     vim.api.nvim_win_close(win, true)
