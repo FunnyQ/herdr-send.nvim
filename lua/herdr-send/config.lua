@@ -2,6 +2,7 @@ local M = {}
 
 M.options = {
   send_key = "<C-s>",
+  back_key = "<BS>",
   chip = {
     local_hl = "DiffAdd",
     remote_hl = "DiffChange",

@@ -4,7 +4,7 @@ local hc = require("herdr-send.hc")
 local render = require("herdr-send.ui.render")
 local compose = require("herdr-send.ui.compose")
 
-return function(sel)
+local function pick(sel, draft)
   local opts = config.options
   local self_where = vim.env.HC_TERMINAL_ID
     and (vim.json.decode(hc.run({ "get", vim.env.HC_TERMINAL_ID, "--json" })).labels or {}).where
@@ -16,6 +16,16 @@ return function(sel)
   local groups = core.group_spaces(core.last_first(agents, last), current, opts.split_machines)
   if #groups == 0 then
     vim.notify("No herdr agent found", vim.log.levels.WARN)
+    return
+  end
+  local function open(item)
+    local ref = core.ref_for(sel, core.same_space(item, current))
+    local lines = draft and core.retarget(draft.lines, draft.ref, ref) or core.initial_lines(ref)
+    compose(item, lines, function(edited) pick(sel, { lines = edited, ref = ref }) end)
+  end
+  local only = not draft and core.only_agent(groups, current)
+  if only then
+    open(vim.tbl_extend("force", core.parse(only), { t = only }))
     return
   end
   local names = vim.tbl_map(function(g) return g.name end, groups)
@@ -108,7 +118,7 @@ return function(sel)
     end,
     confirm = function(picker, item)
       picker:close()
-      if item then compose(item, core.ref_for(sel, core.same_space(item, current))) end
+      if item then open(item) end
     end,
   })
   local update_titles = picker.update_titles
@@ -118,3 +128,5 @@ return function(sel)
   end
   picker:update_titles()
 end
+
+return pick

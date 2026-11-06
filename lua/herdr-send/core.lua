@@ -48,6 +48,11 @@ function M.group_spaces(terminals, current, split_machines)
   return groups
 end
 
+function M.only_agent(groups, current)
+  local g = groups[1]
+  if g and current and g.name == current and #g.agents == 1 then return g.agents[1] end
+end
+
 function M.same_space(item, current)
   return item.machine == "local" and item.space == current
 end
@@ -74,6 +79,13 @@ end
 function M.initial_lines(ref)
   if not ref then return { "" } end
   return { ref, "", "" }
+end
+
+function M.retarget(lines, old_ref, new_ref)
+  if not old_ref or lines[1] ~= old_ref then return lines end
+  local out = vim.list_slice(lines)
+  out[1] = new_ref
+  return out
 end
 
 function M.model_label(argv)

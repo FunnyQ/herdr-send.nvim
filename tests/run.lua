@@ -57,6 +57,17 @@ eq("group_spaces splits machines when asked", shape(M.group_spaces(terms, "p", t
 eq("group_spaces keeps hc order without a current space", vim.tbl_map(function(g) return g.name end,
   M.group_spaces(terms, nil)), { "work", "p" })
 
+eq("only_agent picks the sole agent of the current space", (M.only_agent(M.group_spaces(terms, "p", true), "p") or {}).address, "t2")
+eq("only_agent skips a current space with several agents", M.only_agent(M.group_spaces(terms, "p"), "p"), nil)
+eq("only_agent skips when the current space has no agent", M.only_agent(M.group_spaces(terms, "gone"), "gone"), nil)
+eq("only_agent skips without a current space", M.only_agent(M.group_spaces({ terms[2] }, nil), nil), nil)
+
+eq("retarget swaps an untouched reference", M.retarget({ "@a.lua#L1-2", "", "hi" }, "@a.lua#L1-2", "@/p/a.lua#L1-2"),
+  { "@/p/a.lua#L1-2", "", "hi" })
+eq("retarget keeps an edited reference", M.retarget({ "see a.lua", "hi" }, "@a.lua#L1-2", "@/p/a.lua#L1-2"),
+  { "see a.lua", "hi" })
+eq("retarget keeps lines without a reference", M.retarget({ "hi" }, nil, nil), { "hi" })
+
 eq("same_space only for a local agent in the current space", {
   M.same_space({ machine = "local", space = "p" }, "p"),
   M.same_space({ machine = "omarchy", space = "p" }, "p"),
