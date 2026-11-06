@@ -5,6 +5,18 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-11-07
+
+_tracks tag `v0.3.0`_
+
+### Added
+- The picker offers "New <agent>" rows when your Neovim space has no agent running, starting the chosen agent in a login shell and opening its terminal; configure the list with `new_agents`.
+- `attach()` lets you pick an agent and operate it in a floating terminal; closing the window detaches while the agent keeps running, and `zoom_key` toggles full width.
+- A `close_key` option (default `<C-q>`) cancels the compose window from normal and insert mode, and the window is now a 4:3 landscape up to 80 columns that wraps without splitting words.
+
+### Changed
+- Neovim 0.11 or newer is now required, because the attach terminal depends on it.
+
 ## [0.2.1] - 2026-11-06
 
 _tracks tag `v0.2.1`_
