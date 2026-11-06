@@ -1,5 +1,6 @@
 local config = require("herdr-send.config")
 local pick = require("herdr-send.ui.picker")
+local terminal = require("herdr-send.ui.terminal")
 
 local M = {}
 
@@ -11,6 +12,10 @@ function M.send_selection()
   local a, b = vim.fn.line("v"), vim.fn.line(".")
   vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
   pick({ rel = vim.fn.expand("%:."), abs = vim.fn.expand("%:p"), a = a, b = b })
+end
+
+function M.attach()
+  pick(nil, nil, terminal)
 end
 
 function M.setup(opts)

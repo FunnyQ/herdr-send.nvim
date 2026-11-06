@@ -4,7 +4,7 @@ local hc = require("herdr-send.hc")
 local render = require("herdr-send.ui.render")
 local compose = require("herdr-send.ui.compose")
 
-local function pick(sel, draft)
+local function pick(sel, draft, action)
   local opts = config.options
   local self_where = vim.env.HC_TERMINAL_ID
     and (vim.json.decode(hc.run({ "get", vim.env.HC_TERMINAL_ID, "--json" })).labels or {}).where
@@ -19,6 +19,7 @@ local function pick(sel, draft)
     return
   end
   local function open(item)
+    if action then return action(item) end
     local ref = core.ref_for(sel, core.same_space(item, current))
     local lines = draft and core.retarget(draft.lines, draft.ref, ref) or core.initial_lines(ref)
     compose(item, lines, function(edited) pick(sel, { lines = edited, ref = ref }) end)
@@ -49,7 +50,7 @@ local function pick(sel, draft)
     return models[t.address]
   end
   local picker = Snacks.picker.pick({
-    title = "Send to agent",
+    title = action and "Attach to agent" or "Send to agent",
     focus = "list",
     layout = {
       layout = {
