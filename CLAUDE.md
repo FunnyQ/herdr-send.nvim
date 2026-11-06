@@ -25,4 +25,4 @@ Data model from `hc ls --json`:
 
 The last-sent address is persisted as a single line in `stdpath("state")/herdr-send-last` and floated to the top of its space by `last_first`.
 
-The reference uses a cwd-relative path when the target agent is in Neovim's current space, an absolute path otherwise (`ref_for`).
+The reference uses a cwd-relative path when the target agent is local and in Neovim's current space, an absolute path otherwise (`same_space`, `ref_for`). Spaces group by name across machines unless `split_machines` is set.

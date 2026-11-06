@@ -14,12 +14,16 @@ end
 eq("parse local", M.parse({
   address = "t1gs", agent = "claude-code", status = "working", turn = 2,
   cwd = "/Users/q/p", where = "p / \u{f442}  discuss",
-}), { agent = "claude", space = "p", tab = "discuss", machine = "local", id = "t1gs" })
+}), { agent = "claude-code", space = "p", tab = "discuss", machine = "local", id = "t1gs" })
 
 eq("parse remote, plain tab name", M.parse({
   address = "omarchy/t1n", agent = "codex", status = "done",
   cwd = "/home/q/p", where = "p / 1",
 }), { agent = "codex", space = "p", tab = "1", machine = "omarchy", id = "t1n" })
+
+eq("parse keeps a CJK tab name", M.parse({ address = "t1", agent = "codex", status = "idle", where = "p / 討論" }).tab, "討論")
+eq("parse strips a nerd font icon before a CJK tab name",
+  M.parse({ address = "t1", agent = "codex", status = "idle", where = "p / \u{f442} 討論" }).tab, "討論")
 
 eq("parse missing where", M.parse({ address = "t9", agent = "opencode", status = "idle", cwd = "/x" }),
   { agent = "opencode", space = "?", tab = "?", machine = "local", id = "t9" })
@@ -35,14 +39,28 @@ local terms = {
   { address = "omarchy/t3", where = "p / 1" },
   { address = "t4", where = "work / b" },
 }
-eq("group_spaces puts current space first", vim.tbl_map(function(g)
-  return { g.name, vim.tbl_map(function(t) return t.address end, g.agents) }
-end, M.group_spaces(terms, "p")), {
+local function shape(groups)
+  return vim.tbl_map(function(g)
+    return { g.name, vim.tbl_map(function(t) return t.address end, g.agents) }
+  end, groups)
+end
+eq("group_spaces merges machines and puts current space first", shape(M.group_spaces(terms, "p")), {
   { "p", { "t2", "omarchy/t3" } },
   { "work", { "t1", "t4" } },
 })
+eq("group_spaces splits machines when asked", shape(M.group_spaces(terms, "p", true)), {
+  { "p", { "t2" } },
+  { "work", { "t1", "t4" } },
+  { "p@omarchy", { "omarchy/t3" } },
+})
 eq("group_spaces keeps hc order without a current space", vim.tbl_map(function(g) return g.name end,
   M.group_spaces(terms, nil)), { "work", "p" })
+
+eq("same_space only for a local agent in the current space", {
+  M.same_space({ machine = "local", space = "p" }, "p"),
+  M.same_space({ machine = "omarchy", space = "p" }, "p"),
+  M.same_space({ machine = "local", space = "work" }, "p"),
+}, { true, false, false })
 
 local sel = { rel = "src/a.lua", abs = "/Users/q/p/src/a.lua", a = 9, b = 3 }
 eq("ref_for same space uses relative path", M.ref_for(sel, true), "@src/a.lua#L3-9")
@@ -83,6 +101,7 @@ eq("tab_chunks marks hidden tabs on both sides", M.tab_chunks({ "aaaa", "bbbb", 
 
 eq("model_label model and effort", M.model_label({ "env", "claude", "--model", "opus", "--effort", "low" }), "opus/low")
 eq("model_label equals form", M.model_label({ "codex", "--model=gpt-5" }), "gpt-5")
+eq("model_label ignores flags inside other tokens", M.model_label({ "env", "X=--model foo", "claude" }), "-")
 eq("model_label none", M.model_label({ "claude" }), "-")
 
 os.exit(failures == 0 and 0 or 1)

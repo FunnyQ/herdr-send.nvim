@@ -31,7 +31,7 @@ The plugin binds no global keys. Bind `send` and `send_selection` yourself.
 
 1. Press your key in normal mode to write a plain message, or in visual mode to start it with `@path#Lstart-end`.
 2. Press `h`/`l` or `<Left>`/`<Right>` to switch space. Pick an agent with `j`/`k` and `<CR>`. The agent you last sent to sits at the top of its space and carries a `last sent` chip. Press `i` to search. Each row shows the agent, its `model/effort`, tab, status, machine, and terminal id. The preview shows the agent's current screen.
-3. Write the message. From visual mode, the first line holds the reference: a cwd-relative path for an agent in the current space, an absolute path for any other space. Edit or delete it as needed.
+3. Write the message. From visual mode, the first line holds the reference: a cwd-relative path for a local agent in the current space, an absolute path for any other agent. Edit or delete it as needed.
 4. Press `send_key` to send, or `q` in normal mode to cancel.
 
 `hc send` pastes the text and presses Enter, so the agent starts its turn at once.
@@ -48,6 +48,7 @@ The plugin binds no global keys. Bind `send` and `send_selection` yourself.
     tab_hl = "TabLine",            -- space tab
     tab_active_hl = "TabLineSel",  -- selected space tab
   },
+  split_machines = false,                                  -- true: a remote space gets its own `space@machine` tab
   filter = nil,                                            -- function(terminal) -> boolean, extra filter on `hc ls --json` entries
 }
 ```

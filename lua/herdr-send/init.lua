@@ -9,6 +9,7 @@ M.config = {
     tab_hl = "TabLine",
     tab_active_hl = "TabLineSel",
   },
+  split_machines = false,
   filter = nil,
 }
 
@@ -25,13 +26,22 @@ local function split_where(where)
   return space or "?", tab
 end
 
+local function strip_icons(s)
+  local cp = vim.fn.char2nr(s)
+  while (cp >= 0xE000 and cp <= 0xF8FF) or cp >= 0xF0000 do
+    s = vim.fn.strcharpart(s, 1)
+    cp = vim.fn.char2nr(s)
+  end
+  return vim.trim(s)
+end
+
 function M.parse(t)
   local space, tab = split_where(t.where)
   local machine, id = t.address:match("^(.-)/(.*)$")
   return {
-    agent = (t.agent:gsub("%-code$", "")),
+    agent = t.agent,
     space = space,
-    tab = ((tab or "?"):gsub("^[\128-\255]+%s*", "")),
+    tab = strip_icons(tab or "?"),
     machine = machine or "local",
     id = id or t.address,
   }
@@ -41,10 +51,12 @@ function M.is_agent(t, self_id)
   return t.status ~= nil and t.where ~= nil and t.address ~= self_id
 end
 
-function M.group_spaces(terminals, current)
+function M.group_spaces(terminals, current, split_machines)
   local groups, by_name = {}, {}
   for _, t in ipairs(terminals) do
-    local name = split_where(t.where)
+    local space = split_where(t.where)
+    local machine = t.address:match("^(.-)/")
+    local name = (split_machines and machine) and (space .. "@" .. machine) or space
     if not by_name[name] then
       by_name[name] = { name = name, agents = {} }
       table.insert(groups, by_name[name])
@@ -55,6 +67,10 @@ function M.group_spaces(terminals, current)
     if g.name == current then table.insert(groups, 1, table.remove(groups, i)) break end
   end
   return groups
+end
+
+function M.same_space(item, current)
+  return item.machine == "local" and item.space == current
 end
 
 function M.ref_for(sel, same_space)
@@ -94,9 +110,14 @@ local function hc(args)
 end
 
 function M.model_label(argv)
-  local line = table.concat(argv, " ")
-  local model = line:match("%-%-model[ =](%S+)")
-  local effort = line:match("%-%-effort[ =](%S+)")
+  local function flag(name)
+    for i, arg in ipairs(argv) do
+      if arg == name then return argv[i + 1] end
+      local v = arg:match("^" .. vim.pesc(name) .. "=(.+)$")
+      if v then return v end
+    end
+  end
+  local model, effort = flag("--model"), flag("--effort")
   if not model then return "-" end
   return effort and (model .. "/" .. effort) or model
 end
@@ -212,7 +233,7 @@ function M.pick(sel)
     return M.is_agent(t, vim.env.HC_TERMINAL_ID) and (not M.config.filter or M.config.filter(t))
   end, vim.json.decode(hc({ "ls", "--json" })).terminals)
   local last = read_last()
-  local groups = M.group_spaces(M.last_first(agents, last), current)
+  local groups = M.group_spaces(M.last_first(agents, last), current, M.config.split_machines)
   if #groups == 0 then
     vim.notify("No herdr agent found", vim.log.levels.WARN)
     return
@@ -305,7 +326,7 @@ function M.pick(sel)
     end,
     confirm = function(picker, item)
       picker:close()
-      if item then compose(item, M.ref_for(sel, groups[idx].name == current)) end
+      if item then compose(item, M.ref_for(sel, M.same_space(item, current))) end
     end,
   })
   local update_titles = picker.update_titles
