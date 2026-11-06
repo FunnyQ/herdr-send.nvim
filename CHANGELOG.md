@@ -5,6 +5,16 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-11-06
+
+_tracks tag `v0.2.1`_
+
+### Added
+- A selection within a single line now sends a bare `@path` file reference instead of one with a line range, so you can reference just the file from a line you are on.
+
+### Fixed
+- Sending from visual mode no longer drops the compose window into normal mode when the lone-agent picker skip opens it immediately.
+
 ## [0.2.0] - 2026-11-06
 
 _tracks tag `v0.2.0`_
