@@ -5,6 +5,14 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-11-06
+
+_tracks tag `v0.2.0`_
+
+### Added
+- `send_key` now accepts a single key or a list, and Cmd-Return (`<D-CR>`) sends the message on macOS alongside the existing `<C-s>`.
+- The picker is skipped when the current space holds exactly one agent, and a new `back_key` (default `<BS>`) returns from the message window to the picker with your draft kept.
+
 ## [0.1.1] - 2026-11-06
 
 _tracks tag `v0.1.1`_
