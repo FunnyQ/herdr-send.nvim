@@ -109,12 +109,15 @@ return function(view)
   coroutine.wrap(function()
     local reply = body_for(view)
     vim.schedule(function()
-      local opts = { title = view.agent .. " done" }
+      local base = { title = view.agent .. " done" }
       local body = "done"
       if reply then
         body = core.truncate(table.concat(core.wrap_markdown(reply, notify_width()), "\n"), max_lines)
-        opts.on_open = as_markdown
+        base.on_open = as_markdown
       end
+      local opts = core.reply_opts(base, require("herdr-send.config").options.notify)
+      -- nvim-notify's compact render prefixes the first line with "icon | title:", pushing it past max_width
+      if reply and opts.render == "compact" then body = "\n" .. body end
       vim.notify(body, vim.log.levels.INFO, opts)
     end)
   end)()

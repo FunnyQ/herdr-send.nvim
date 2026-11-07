@@ -236,4 +236,16 @@ eq("wrap_markdown leaves tables alone", M.wrap_markdown("| aaa | bbb |", 4), { "
 eq("truncate keeps a short body", M.truncate("a\nb\n", 2), "a\nb")
 eq("truncate cuts long bodies with an ellipsis", M.truncate("a\nb\nc", 2), "a\nb\n…")
 
+eq("reply_opts keeps base opts when the user sets none", M.reply_opts({ title = "t" }, {}), { title = "t" })
+eq("reply_opts lets user opts override base opts",
+  M.reply_opts({ title = "t" }, { title = "u", render = "compact" }), { title = "u", render = "compact" })
+local calls = {}
+local opts = M.reply_opts({ on_open = function(w) table.insert(calls, "base" .. w) end },
+  { on_open = function(w) table.insert(calls, "user" .. w) end })
+opts.on_open(7)
+eq("reply_opts runs the base on_open before the user on_open", calls, { "base7", "user7" })
+local user_open = function() end
+eq("reply_opts uses the user on_open alone when base has none",
+  M.reply_opts({}, { on_open = user_open }).on_open, user_open)
+
 os.exit(failures == 0 and 0 or 1)

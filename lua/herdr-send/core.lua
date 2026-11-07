@@ -267,4 +267,15 @@ function M.truncate(text, max_lines)
   return table.concat(vim.list_slice(lines, 1, max_lines), "\n") .. "\n…"
 end
 
+function M.reply_opts(base, user)
+  local opts = vim.tbl_extend("force", base, user)
+  if base.on_open and user.on_open then
+    opts.on_open = function(win)
+      base.on_open(win)
+      user.on_open(win)
+    end
+  end
+  return opts
+end
+
 return M
