@@ -63,6 +63,14 @@ The first `status()` call starts one `hc events` stream in the background. Each 
 }
 ```
 
+### Reply notifications
+
+When the relevant agent goes from `working` to `done`, herdr-send calls `vim.notify` with the reply, titled `<agent> done`. A permission prompt (`blocked`) does not count as done.
+
+For a local Claude Code agent, the body is the text of the last assistant message in its transcript under `~/.claude/projects/`, cut to 20 lines. For other harnesses and remote agents, the body is `done`.
+
+When `setup` runs inside herdr-app, it starts the `hc events` stream, so notifications work without the statusline. Set `notify_on_done = false` to turn them off.
+
 ## Options
 
 ```lua
@@ -85,6 +93,7 @@ The first `status()` call starts one `hc events` stream in the background. Each 
   },
   split_machines = false,                                  -- true: a remote space gets its own `space@machine` tab
   filter = nil,                                            -- function(terminal) -> boolean, extra filter on `hc ls --json` entries
+  notify_on_done = true,                                   -- vim.notify the reply when the relevant agent finishes a turn
 }
 ```
 
