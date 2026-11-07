@@ -67,7 +67,7 @@ The first `status()` call starts one `hc events` stream in the background. Each 
 
 When the relevant agent goes from `working` to `done`, herdr-send calls `vim.notify` with the reply, titled `<agent> done`. A permission prompt (`blocked`) does not count as done.
 
-For a local Claude Code agent, the body is the text of the last assistant message in its transcript under `~/.claude/projects/`, cut to 20 lines. For other harnesses and remote agents, the body is `done`.
+For a local Claude Code agent, the body is the text of the last assistant message in its transcript under `~/.claude/projects/`, cut to 20 lines. The notification window gets filetype `markdown`, so treesitter and render-markdown.nvim render it like a buffer. The body is pre-wrapped to nvim-notify's `max_width` at spaces and between CJK characters, without splitting inline code or bold. For other harnesses and remote agents, the body is `done`.
 
 When `setup` runs inside herdr-app, it starts the `hc events` stream, so notifications work without the statusline. Set `notify_on_done = false` to turn them off.
 
