@@ -121,4 +121,54 @@ function M.model_label(argv)
   return effort and (model .. "/" .. effort) or model
 end
 
+function M.split_lines(pending, chunk)
+  local lines = vim.split(pending .. chunk, "\n", { plain = true })
+  local rest = table.remove(lines)
+  return lines, rest
+end
+
+local function present(v)
+  if v ~= vim.NIL then return v end
+end
+
+function M.ls_view(t)
+  local status = present(t.status)
+  return {
+    address = t.address,
+    agent = status and status.app,
+    status = status and status.state,
+    where = present((present(t.labels) or {}).where),
+  }
+end
+
+function M.apply_event(terms, msg)
+  if msg.terminals then
+    for k in pairs(terms) do terms[k] = nil end
+    for _, t in ipairs(msg.terminals) do terms[t.address] = t end
+    return terms
+  end
+  local ev = msg.params
+  if not ev or not ev.terminal then return terms end
+  if ev.type == "finished" or ev.type == "removed" then
+    terms[ev.terminal] = nil
+  else
+    terms[ev.terminal] = vim.tbl_extend("force", terms[ev.terminal] or { address = ev.terminal }, ev.data or {})
+  end
+  return terms
+end
+
+function M.status_target(agents, current, last)
+  local in_space = {}
+  for _, t in ipairs(agents) do
+    local here = not current or M.split_where(t.where) == current
+    if here and t.address == last then return t end
+    if current and here then table.insert(in_space, t) end
+  end
+  if #in_space == 1 then return in_space[1] end
+end
+
+function M.status_text(agent)
+  return agent and ("● " .. agent.status) or ""
+end
+
 return M

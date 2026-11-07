@@ -1,6 +1,7 @@
 local config = require("herdr-send.config")
 local pick = require("herdr-send.ui.picker")
 local terminal = require("herdr-send.ui.terminal")
+local status = require("herdr-send.status")
 
 local M = {}
 
@@ -17,6 +18,9 @@ end
 function M.attach()
   pick(nil, nil, terminal)
 end
+
+M.status = status.text
+M.status_hl = status.hl
 
 function M.setup(opts)
   opts = opts or {}

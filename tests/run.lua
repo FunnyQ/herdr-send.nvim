@@ -136,4 +136,47 @@ eq("compose_size caps width on a large editor", M.compose_size(80, 198, 100), { 
 eq("compose_size shrinks width to fit height", M.compose_size(80, 198, 20), { width = 53, height = 20 })
 eq("compose_size shrinks to a narrow editor", M.compose_size(80, 50, 100), { width = 50, height = 19 })
 
+eq("split_lines keeps a partial line for later", { M.split_lines("ab", "c\nde\nf") }, { { "abc", "de" }, "f" })
+eq("split_lines without newline", { M.split_lines("", "abc") }, { {}, "abc" })
+
+local raw = {
+  address = "t1", state = "live",
+  status = { app = "claude-code", state = "working", msg = "x" },
+  labels = { where = "p / main" },
+}
+eq("ls_view flattens a raw terminal", M.ls_view(raw),
+  { address = "t1", agent = "claude-code", status = "working", where = "p / main" })
+eq("ls_view treats null status and labels as missing",
+  M.ls_view({ address = "t2", status = vim.NIL, labels = { where = vim.NIL } }), { address = "t2" })
+
+local function sorted_keys(t) local k = vim.tbl_keys(t) table.sort(k) return k end
+local terms_by = M.apply_event({}, { seq = 1, terminals = { raw, { address = "t2", labels = {} } } })
+eq("apply_event loads a snapshot", sorted_keys(terms_by), { "t1", "t2" })
+M.apply_event(terms_by, { method = "event", params = {
+  type = "status", terminal = "t1", data = { status = { app = "claude-code", state = "idle" } } } })
+eq("apply_event merges a status change", M.ls_view(terms_by.t1).status, "idle")
+M.apply_event(terms_by, { method = "event", params = {
+  type = "status", terminal = "t1", data = { status = vim.NIL } } })
+eq("apply_event clears status on null", M.ls_view(terms_by.t1).status, nil)
+M.apply_event(terms_by, { method = "event", params = { type = "removed", terminal = "t2", data = {} } })
+eq("apply_event drops a removed terminal", terms_by.t2, nil)
+M.apply_event(terms_by, { method = "event", params = { type = "labels", terminal = "t9", data = { labels = { where = "q / 1" } } } })
+eq("apply_event adds an unknown terminal", M.ls_view(terms_by.t9), { address = "t9", where = "q / 1" })
+eq("apply_event replaces on a fresh snapshot", sorted_keys(M.apply_event(terms_by, { seq = 9, terminals = {} })), {})
+
+local agents = {
+  { address = "t1", status = "idle", where = "p / a" },
+  { address = "t2", status = "working", where = "p / b" },
+  { address = "t3", status = "done", where = "work / a" },
+}
+local function addr(t) return t and t.address end
+eq("status_target picks last sent in the current space", addr(M.status_target(agents, "p", "t2")), "t2")
+eq("status_target picks the sole agent of the current space", addr(M.status_target(agents, "work", "t1")), "t3")
+eq("status_target skips a crowded current space without last sent", addr(M.status_target(agents, "p", "t3")), nil)
+eq("status_target picks last sent outside herdr-app", addr(M.status_target(agents, nil, "t3")), "t3")
+eq("status_target skips a gone last sent", addr(M.status_target(agents, nil, "t9")), nil)
+
+eq("status_text shows the state", M.status_text({ status = "working" }), "● working")
+eq("status_text is empty without agent", M.status_text(nil), "")
+
 os.exit(failures == 0 and 0 or 1)

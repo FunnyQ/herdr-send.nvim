@@ -4,6 +4,10 @@ function M.run(args)
   return vim.fn.system(vim.list_extend({ "hc" }, args))
 end
 
+function M.stream(args, on_stdout, on_exit)
+  return vim.system(vim.list_extend({ "hc" }, args), { stdout = on_stdout }, on_exit)
+end
+
 -- one global "last used" address, per-project history if switching projects often
 local last_file = vim.fn.stdpath("state") .. "/herdr-send-last"
 
