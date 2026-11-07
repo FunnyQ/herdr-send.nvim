@@ -47,6 +47,22 @@ Call `attach` to pick an agent the same way and open its terminal in a floating 
 
 `hc send` pastes the text and presses Enter, so the agent starts its turn at once.
 
+### Statusline
+
+Call `status()` for a short string with the state of the relevant agent, such as `● working` or `● idle`, or `""` when there is none. Call `status_hl()` for the matching highlight group, or `nil`.
+
+The relevant agent is the agent you last sent to when it sits in the space Neovim runs in. Otherwise it is the only agent of that space. Outside herdr-app, it is the agent you last sent to.
+
+The first `status()` call starts one `hc events` stream in the background. Each call after that reads a cached value, so the statusline never waits on `hc`. When the stream ends, it reconnects after 5 seconds.
+
+```lua
+-- lualine
+{
+  function() return require("herdr-send").status() end,
+  color = function() return require("herdr-send").status_hl() end,
+}
+```
+
 ## Options
 
 ```lua
