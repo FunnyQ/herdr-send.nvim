@@ -171,4 +171,47 @@ function M.status_text(agent)
   return agent and ("● " .. agent.status) or ""
 end
 
+function M.finished(prev, target)
+  return prev ~= nil and target ~= nil and prev.address == target.address
+    and prev.status == "working" and target.status == "done"
+end
+
+function M.project_slug(cwd)
+  return (cwd:gsub("[^%w]", "-"))
+end
+
+function M.last_reply(lines)
+  local id, texts = nil, {}
+  for i = #lines, 1, -1 do
+    local ok, entry = pcall(vim.json.decode, lines[i])
+    local msg = ok and type(entry) == "table" and entry.type == "assistant" and not entry.isSidechain and entry.message
+    if msg and (id == nil or msg.id == id) then
+      for j = #msg.content, 1, -1 do
+        local block = msg.content[j]
+        if block.type == "text" then table.insert(texts, 1, block.text) end
+      end
+      if #texts > 0 then id = msg.id end
+    elseif id then
+      break
+    end
+  end
+  if #texts > 0 then return table.concat(texts, "\n\n") end
+end
+
+function M.turn_ended(lines)
+  for i = #lines, 1, -1 do
+    local ok, entry = pcall(vim.json.decode, lines[i])
+    local kind = ok and type(entry) == "table" and entry.type
+    if kind == "system" and entry.subtype == "turn_duration" then return true end
+    if kind == "assistant" or kind == "user" then return false end
+  end
+  return false
+end
+
+function M.truncate(text, max_lines)
+  local lines = vim.split(vim.trim(text), "\n", { plain = true })
+  if #lines <= max_lines then return table.concat(lines, "\n") end
+  return table.concat(vim.list_slice(lines, 1, max_lines), "\n") .. "\n…"
+end
+
 return M

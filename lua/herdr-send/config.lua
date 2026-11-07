@@ -19,6 +19,7 @@ M.options = {
   },
   split_machines = false,
   filter = nil,
+  notify_on_done = true,
 }
 
 return M

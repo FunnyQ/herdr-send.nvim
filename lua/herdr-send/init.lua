@@ -28,6 +28,7 @@ function M.setup(opts)
   -- older Neovim merges list tables by index in tbl_deep_extend; a user key list must replace the default whole
   config.options.send_key = opts.send_key or config.options.send_key
   config.options.new_agents = opts.new_agents or config.options.new_agents
+  if config.options.notify_on_done and vim.env.HC_TERMINAL_ID then status.start() end
 end
 
 return M

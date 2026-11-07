@@ -1,13 +1,14 @@
 local config = require("herdr-send.config")
 local core = require("herdr-send.core")
 local hc = require("herdr-send.hc")
+local notify_done = require("herdr-send.notify")
 local render = require("herdr-send.ui.render")
 
 local M = {}
 
 local reconnect_ms = 5000
 local terms, pending, started = {}, "", false
-local text, hl = "", nil
+local text, hl, prev = "", nil, nil
 
 local function refresh()
   local self_id = vim.env.HC_TERMINAL_ID
@@ -20,6 +21,8 @@ local function refresh()
     if core.is_agent(view, self_id) and (not filter or filter(view)) then table.insert(agents, view) end
   end
   local target = core.status_target(agents, current, hc.read_last())
+  if config.options.notify_on_done and core.finished(prev, target) then notify_done(target) end
+  prev = target
   local new_text = core.status_text(target)
   hl = target and render.status_hl[target.status]
   if new_text ~= text then
@@ -50,11 +53,15 @@ local function start()
   end)
 end
 
-function M.text()
+function M.start()
   if not started then
     started = true
     if vim.fn.executable("hc") == 1 then start() end
   end
+end
+
+function M.text()
+  M.start()
   return text
 end
 

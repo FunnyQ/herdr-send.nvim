@@ -179,4 +179,49 @@ eq("status_target skips a gone last sent", addr(M.status_target(agents, nil, "t9
 eq("status_text shows the state", M.status_text({ status = "working" }), "● working")
 eq("status_text is empty without agent", M.status_text(nil), "")
 
+local function at(status) return { address = "t1", status = status } end
+eq("finished on working to done", M.finished(at("working"), at("done")), true)
+eq("finished skips blocked", { M.finished(at("working"), at("blocked")), M.finished(at("blocked"), at("done")) },
+  { false, false })
+eq("finished skips done to done", M.finished(at("done"), at("done")), false)
+eq("finished skips a target change", M.finished(at("working"), { address = "t2", status = "done" }), false)
+eq("finished skips without a previous target", M.finished(nil, at("done")), false)
+eq("finished skips without a target", M.finished(at("working"), nil), false)
+
+eq("project_slug replaces every non-alphanumeric", M.project_slug("/Users/q/.config/herdr-send.nvim"),
+  "-Users-q--config-herdr-send-nvim")
+
+local function line(t) return vim.json.encode(t) end
+local function assistant(id, content) return line({ type = "assistant", message = { id = id, role = "assistant", content = content } }) end
+eq("last_reply joins text blocks of the last assistant message", M.last_reply({
+  '{"partial line from a tail read',
+  assistant("m1", { { type = "text", text = "old" } }),
+  line({ type = "user", message = { role = "user", content = "q" } }),
+  assistant("m2", { { type = "thinking", thinking = "hmm" } }),
+  assistant("m2", { { type = "text", text = "first" } }),
+  assistant("m2", { { type = "tool_use", name = "Bash" } }),
+  assistant("m2", { { type = "text", text = "second" } }),
+  line({ type = "system", subtype = "turn_duration" }),
+}), "first\n\nsecond")
+eq("last_reply skips a final message without text", M.last_reply({
+  assistant("m1", { { type = "text", text = "answer" } }),
+  assistant("m2", { { type = "tool_use", name = "Bash" } }),
+}), "answer")
+eq("last_reply skips sidechain messages", M.last_reply({
+  assistant("m1", { { type = "text", text = "main" } }),
+  line({ type = "assistant", isSidechain = true, message = { id = "m2", content = { { type = "text", text = "sub" } } } }),
+}), "main")
+eq("last_reply is nil without assistant text", M.last_reply({ line({ type = "user" }) }), nil)
+
+local turn_end = line({ type = "system", subtype = "turn_duration" })
+local prompt = line({ type = "user", message = { role = "user", content = "q" } })
+local reply = assistant("m1", { { type = "text", text = "a" } })
+eq("turn_ended after turn_duration", M.turn_ended({ prompt, reply, turn_end, line({ type = "last-prompt" }) }), true)
+eq("turn_ended waits for a reply written after the last turn_duration",
+  M.turn_ended({ turn_end, prompt, reply, line({ type = "attachment" }) }), false)
+eq("turn_ended waits without turn_duration", M.turn_ended({ prompt }), false)
+
+eq("truncate keeps a short body", M.truncate("a\nb\n", 2), "a\nb")
+eq("truncate cuts long bodies with an ellipsis", M.truncate("a\nb\nc", 2), "a\nb\n…")
+
 os.exit(failures == 0 and 0 or 1)
