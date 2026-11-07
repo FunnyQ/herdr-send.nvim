@@ -69,11 +69,13 @@ The first `status()` call starts one `hc events` stream in the background. Each 
 
 When the relevant agent goes from `working` to `done`, herdr-send calls `vim.notify` with the reply, titled `<agent> done`. A permission prompt (`blocked`) does not count as done.
 
-For a local Claude Code agent, the body is the text of the last assistant message in its transcript under `~/.claude/projects/`, cut to 20 lines. The notification window gets filetype `markdown`, so treesitter and render-markdown.nvim render it like a buffer. The body is pre-wrapped to nvim-notify's `max_width` at spaces and between CJK characters, without splitting inline code or bold. For other harnesses and remote agents, the body is `done`.
+The notification stays open until you act outside it. Focusing it, typing in it, and scrolling over it do not count. The key that leaves it counts. After the first other key or mouse action, it closes `notify_linger_ms` later. It stays open while it has focus.
+
+For a local Claude Code agent, the body is the text of the last assistant message in its transcript under `~/.claude/projects/`, in full. The notification window gets filetype `markdown` and `wrap`, so treesitter and render-markdown.nvim render it like a buffer. The body is pre-wrapped to nvim-notify's `max_width` at spaces and between CJK characters, without splitting inline code or bold. For other harnesses and remote agents, the body is `done`.
 
 When `setup` runs inside herdr-app, it starts the `hc events` stream, so notifications work without the statusline. Set `notify_on_done = false` to turn them off.
 
-Set `notify` to pass extra `vim.notify` opts to the reply notification only. Its keys override the defaults, `title` included. If you set `on_open`, it runs after the window gets filetype `markdown`, never instead of it. With `render = "compact"`, the body starts on the line below the title, so every line stays inside `max_width`.
+Set `notify` to pass extra `vim.notify` opts to the reply notification only. Its keys override the defaults, `title` included. A `timeout` or `keep` here replaces the `notify_linger_ms` behavior. If you set `on_open`, it runs after the window gets filetype `markdown`, never instead of it. With `render = "compact"`, the body starts on the line below the title, so every line stays inside `max_width`.
 
 ## Options
 
@@ -99,6 +101,7 @@ Set `notify` to pass extra `vim.notify` opts to the reply notification only. Its
   split_machines = false,                                  -- true: a remote space gets its own `space@machine` tab
   filter = nil,                                            -- function(terminal) -> boolean, extra filter on `hc ls --json` entries
   notify_on_done = true,                                   -- vim.notify the reply when the relevant agent finishes a turn
+  notify_linger_ms = 3000,                                 -- after your first action outside the reply notification, close it this many milliseconds later
   notify = {},                                             -- extra vim.notify opts for the reply notification, e.g. { render = "compact" }
 }
 ```
