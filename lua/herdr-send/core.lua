@@ -261,12 +261,6 @@ function M.wrap_markdown(text, width)
   return out
 end
 
-function M.truncate(text, max_lines)
-  local lines = vim.split(vim.trim(text), "\n", { plain = true })
-  if #lines <= max_lines then return table.concat(lines, "\n") end
-  return table.concat(vim.list_slice(lines, 1, max_lines), "\n") .. "\n…"
-end
-
 function M.reply_opts(base, user)
   local opts = vim.tbl_extend("force", base, user)
   if base.on_open and user.on_open then

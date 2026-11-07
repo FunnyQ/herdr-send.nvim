@@ -233,8 +233,6 @@ eq("wrap_markdown keeps CJK punctuation off the line start", M.wrap_markdown("ä¸
 eq("wrap_markdown splits a word longer than width", M.wrap_markdown("abcdefghij", 4), { "abcd", "efgh", "ij" })
 eq("wrap_markdown leaves tables alone", M.wrap_markdown("| aaa | bbb |", 4), { "| aaa | bbb |" })
 
-eq("truncate keeps a short body", M.truncate("a\nb\n", 2), "a\nb")
-eq("truncate cuts long bodies with an ellipsis", M.truncate("a\nb\nc", 2), "a\nb\nâ€¦")
 
 eq("reply_opts keeps base opts when the user sets none", M.reply_opts({ title = "t" }, {}), { title = "t" })
 eq("reply_opts lets user opts override base opts",

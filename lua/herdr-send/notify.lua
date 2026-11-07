@@ -2,7 +2,6 @@ local core = require("herdr-send.core")
 
 local uv = vim.uv
 local claude_dir = vim.fn.expand("~/.claude")
-local max_lines = 20
 local poll_ms, poll_tries = 250, 20
 -- reads only the file tail, a final reply longer than this loses its start
 local tail_bytes = 512 * 1024
@@ -103,6 +102,36 @@ end
 
 local function as_markdown(win)
   vim.bo[vim.api.nvim_win_get_buf(win)].filetype = "markdown"
+  -- a nowrap window scrolls sideways into blank columns even when every line fits
+  vim.wo[win].wrap = true
+end
+
+-- nvim-notify asks keep() each time timeout fires, so a short timeout polls it
+local function linger(base, markdown)
+  local win, deadline
+  base.timeout = 100
+  base.keep = function()
+    return not deadline or vim.uv.now() < deadline or vim.api.nvim_get_current_win() == win
+  end
+  base.on_open = function(w)
+    win = w
+    if markdown then as_markdown(w) end
+    local ns = vim.on_key(function(key)
+      local name = vim.fn.keytrans(key)
+      if deadline or name:find("MouseMove") then return end
+      vim.schedule(function()
+        if deadline or not vim.api.nvim_win_is_valid(win) or vim.api.nvim_get_current_win() == win then return end
+        if name:find("Mouse") or name:find("ScrollWheel") or name:find("Drag") or name:find("Release") then
+          if vim.fn.getmousepos().winid == win then return end
+        end
+        deadline = vim.uv.now() + require("herdr-send.config").options.notify_linger_ms
+      end)
+    end)
+    vim.api.nvim_create_autocmd("WinClosed", {
+      pattern = tostring(w), once = true,
+      callback = function() vim.on_key(nil, ns) end,
+    })
+  end
 end
 
 return function(view)
@@ -112,9 +141,9 @@ return function(view)
       local base = { title = view.agent .. " done" }
       local body = "done"
       if reply then
-        body = core.truncate(table.concat(core.wrap_markdown(reply, notify_width()), "\n"), max_lines)
-        base.on_open = as_markdown
+        body = vim.trim(table.concat(core.wrap_markdown(reply, notify_width()), "\n"))
       end
+      linger(base, reply ~= nil)
       local opts = core.reply_opts(base, require("herdr-send.config").options.notify)
       -- nvim-notify's compact render prefixes the first line with "icon | title:", pushing it past max_width
       if reply and opts.render == "compact" then body = "\n" .. body end
