@@ -27,7 +27,12 @@ local function refresh()
   hl = target and render.status_hl[target.status]
   if new_text ~= text then
     text = new_text
-    vim.cmd.redrawstatus()
+    -- lualine caches its statusline string between its own 1000 ms refreshes, so redrawstatus repaints stale text
+    if package.loaded.lualine then
+      package.loaded.lualine.refresh({ place = { "statusline" } })
+    else
+      vim.cmd.redrawstatus()
+    end
   end
 end
 
