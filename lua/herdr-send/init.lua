@@ -16,7 +16,7 @@ function M.send_selection()
 end
 
 function M.attach()
-  pick(nil, nil, terminal)
+  if not terminal.show() then pick(nil, nil, terminal.open) end
 end
 
 M.status = status.text

@@ -29,7 +29,7 @@ local function pick(sel, draft, action)
       return
     end
     local address = vim.json.decode(out).address
-    terminal(vim.tbl_extend("force", core.parse({ address = address, agent = new.name, where = self_where }), { t = { address = address } }))
+    terminal.open(vim.tbl_extend("force", core.parse({ address = address, agent = new.name, where = self_where }), { t = { address = address } }))
   end
   local function open(item)
     if item.new then return spawn(item.new) end
