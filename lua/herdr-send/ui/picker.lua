@@ -142,7 +142,7 @@ local function pick(sel, draft, action)
     end,
     confirm = function(picker, item)
       picker:close()
-      if item then open(item) end
+      if item then vim.schedule(function() open(item) end) end
     end,
   })
   local update_titles = picker.update_titles
