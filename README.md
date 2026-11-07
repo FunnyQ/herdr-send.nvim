@@ -71,6 +71,8 @@ For a local Claude Code agent, the body is the text of the last assistant messag
 
 When `setup` runs inside herdr-app, it starts the `hc events` stream, so notifications work without the statusline. Set `notify_on_done = false` to turn them off.
 
+Set `notify` to pass extra `vim.notify` opts to the reply notification only. Its keys override the defaults, `title` included. If you set `on_open`, it runs after the window gets filetype `markdown`, never instead of it. With `render = "compact"`, the body starts on the line below the title, so every line stays inside `max_width`.
+
 ## Options
 
 ```lua
@@ -94,6 +96,7 @@ When `setup` runs inside herdr-app, it starts the `hc events` stream, so notific
   split_machines = false,                                  -- true: a remote space gets its own `space@machine` tab
   filter = nil,                                            -- function(terminal) -> boolean, extra filter on `hc ls --json` entries
   notify_on_done = true,                                   -- vim.notify the reply when the relevant agent finishes a turn
+  notify = {},                                             -- extra vim.notify opts for the reply notification, e.g. { render = "compact" }
 }
 ```
 
