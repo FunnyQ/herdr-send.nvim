@@ -91,15 +91,31 @@ local function body_for(view)
     vim.defer_fn(function() coroutine.resume(co) end, poll_ms)
     coroutine.yield()
   end
-  local reply = core.last_reply(lines)
-  return reply and core.truncate(reply, max_lines)
+  return core.last_reply(lines)
+end
+
+-- mirrors nvim-notify's wrapped-default width, which splits lines by byte count
+local function notify_width()
+  local ok, max = pcall(function() return require("notify")._config().max_width() end)
+  local columns = vim.o.columns
+  return math.max(10, math.min(ok and max or math.floor(columns * 0.3), columns - 1))
+end
+
+local function as_markdown(win)
+  vim.bo[vim.api.nvim_win_get_buf(win)].filetype = "markdown"
 end
 
 return function(view)
   coroutine.wrap(function()
-    local body = body_for(view) or "done"
+    local reply = body_for(view)
     vim.schedule(function()
-      vim.notify(body, vim.log.levels.INFO, { title = view.agent .. " done" })
+      local opts = { title = view.agent .. " done" }
+      local body = "done"
+      if reply then
+        body = core.truncate(table.concat(core.wrap_markdown(reply, notify_width()), "\n"), max_lines)
+        opts.on_open = as_markdown
+      end
+      vim.notify(body, vim.log.levels.INFO, opts)
     end)
   end)()
 end

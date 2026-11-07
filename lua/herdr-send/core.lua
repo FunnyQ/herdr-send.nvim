@@ -208,6 +208,59 @@ function M.turn_ended(lines)
   return false
 end
 
+local utf8_char = "[%z\1-\127\194-\244][\128-\191]*"
+local no_line_start = {}
+for c in ("，。、；：！？）」』》】,.;:!?)"):gmatch(utf8_char) do no_line_start[c] = true end
+
+local function wrap_line(line, width)
+  local chars = {}
+  for c in line:gmatch(utf8_char) do chars[#chars + 1] = c end
+  local breakable, in_code, in_bold, i = {}, false, false, 1
+  while i <= #chars do
+    local c, prev = chars[i], chars[i - 1]
+    if prev and not in_code and not in_bold then
+      breakable[i] = prev == " " or ((#c > 1 or #prev > 1) and c ~= " " and not no_line_start[c])
+    end
+    if c == "`" then
+      in_code = not in_code
+    elseif not in_code and c == "*" and chars[i + 1] == "*" then
+      in_bold = not in_bold
+      i = i + 1
+    end
+    i = i + 1
+  end
+  local lines, s = {}, 1
+  while s <= #chars do
+    local bytes, e, last = 0, s, nil
+    while e <= #chars and bytes + #chars[e] <= width do
+      if e > s and breakable[e] then last = e end
+      bytes, e = bytes + #chars[e], e + 1
+    end
+    if e > #chars or breakable[e] or not last then last = e end
+    lines[#lines + 1] = (table.concat(chars, "", s, last - 1):gsub("%s+$", ""))
+    s = last
+    while chars[s] == " " do s = s + 1 end
+  end
+  return lines
+end
+
+function M.wrap_markdown(text, width)
+  local out, fenced = {}, false
+  for _, line in ipairs(vim.split(text, "\n", { plain = true })) do
+    if line:match("^%s*```") or line:match("^%s*~~~") then
+      fenced = not fenced
+      out[#out + 1] = line
+    elseif line:match("^%s*$") then
+      out[#out + 1] = " "
+    elseif fenced or #line <= width or line:match("^%s*|") then
+      out[#out + 1] = line
+    else
+      vim.list_extend(out, wrap_line(line, width))
+    end
+  end
+  return out
+end
+
 function M.truncate(text, max_lines)
   local lines = vim.split(vim.trim(text), "\n", { plain = true })
   if #lines <= max_lines then return table.concat(lines, "\n") end

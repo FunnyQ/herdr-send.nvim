@@ -221,6 +221,18 @@ eq("turn_ended waits for a reply written after the last turn_duration",
   M.turn_ended({ turn_end, prompt, reply, line({ type = "attachment" }) }), false)
 eq("turn_ended waits without turn_duration", M.turn_ended({ prompt }), false)
 
+eq("wrap_markdown breaks at the last space within width", M.wrap_markdown("aaa bbb ccc", 8), { "aaa bbb", "ccc" })
+eq("wrap_markdown keeps short lines and turns blank lines into a space",
+  M.wrap_markdown("a\n\nb", 8), { "a", " ", "b" })
+eq("wrap_markdown keeps a code span whole", M.wrap_markdown("aa `b c` dd", 7), { "aa", "`b c`", "dd" })
+eq("wrap_markdown keeps bold whole", M.wrap_markdown("aa **b c** dd", 8), { "aa", "**b c**", "dd" })
+eq("wrap_markdown leaves fenced code alone", M.wrap_markdown("```\naaa bbb ccc\n\n```", 4),
+  { "```", "aaa bbb ccc", " ", "```" })
+eq("wrap_markdown breaks between CJK characters by byte width", M.wrap_markdown("一二三四", 9), { "一二三", "四" })
+eq("wrap_markdown keeps CJK punctuation off the line start", M.wrap_markdown("一二三，四", 9), { "一二", "三，四" })
+eq("wrap_markdown splits a word longer than width", M.wrap_markdown("abcdefghij", 4), { "abcd", "efgh", "ij" })
+eq("wrap_markdown leaves tables alone", M.wrap_markdown("| aaa | bbb |", 4), { "| aaa | bbb |" })
+
 eq("truncate keeps a short body", M.truncate("a\nb\n", 2), "a\nb")
 eq("truncate cuts long bodies with an ellipsis", M.truncate("a\nb\nc", 2), "a\nb\n…")
 
