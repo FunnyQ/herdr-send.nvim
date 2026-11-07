@@ -23,7 +23,7 @@ Modules under `lua/herdr-send/`:
 - `hc.lua`: `run` wraps the `hc` CLI; `read_last` / `write_last` persist the last-sent address.
 - `ui/picker.lua`: calls `hc get $HC_TERMINAL_ID --json` to find the current space and `hc ls --json` to list terminals, then builds a snacks.nvim picker with one tab per space.
 - `ui/compose.lua`: opens a floating markdown buffer and sends with `hc send <address> -- <text>`.
-- `ui/terminal.lua`: opens a floating terminal running `hc attach <address>`; deleting the buffer ends the job, which detaches.
+- `ui/terminal.lua`: opens a floating terminal running `hc attach <address>`; deleting the buffer ends the job, which detaches. `toggle_key` hides the window and keeps the buffer, and `show` reopens it, so `attach` skips the picker while a hidden buffer lives.
 
 `tests/run.lua` covers `core` and `ui/render`.
 

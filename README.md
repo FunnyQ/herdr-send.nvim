@@ -43,7 +43,9 @@ When the space Neovim runs in holds no agent, its tab still comes first and list
 
 ### Attach
 
-Call `attach` to pick an agent the same way and open its terminal in a floating window through `hc attach`. Type into the agent directly. Press `zoom_key` to toggle between the right-side window and the full editor width. Press `close_key` to close the window. Closing the window detaches; the agent keeps running in its herdr-app pane.
+Call `attach` to pick an agent the same way and open its terminal in a floating window through `hc attach`. Type into the agent directly. Press `toggle_key` once to hide the window; the attach keeps running. Call `attach` again to show the hidden window without the picker. Press `toggle_key` twice within `double_tap_ms` to toggle between the right-side window and the full editor width. Press `close_key` to close the window. Closing the window detaches; the agent keeps running in its herdr-app pane, and the next `attach` opens the picker.
+
+Bind `attach` to the same key as `toggle_key` to show and hide the window with one key.
 
 `hc send` pastes the text and presses Enter, so the agent starts its turn at once.
 
@@ -80,7 +82,8 @@ Set `notify` to pass extra `vim.notify` opts to the reply notification only. Its
   send_key = { "<C-s>", "<D-CR>" },                        -- key or list of keys that send from the message window; the footer shows the first
   back_key = "<BS>",                                       -- normal mode: returns from the message window to the picker
   close_key = "<C-q>",                                     -- closes the message window and the attach window; the agent never receives this key
-  zoom_key = "<C-CR>",                                     -- toggles the attach window to full editor width; the agent never receives this key
+  toggle_key = "<C-CR>",                                   -- once hides the attach window, twice within `double_tap_ms` toggles full editor width; the agent never receives this key
+  double_tap_ms = 190,                                     -- max milliseconds between two `toggle_key` presses to zoom; a single press hides after this delay
   chip = {                       -- highlight groups whose background colors each chip
     local_hl = "DiffAdd",          -- machine chip, this machine
     remote_hl = "DiffChange",      -- machine chip, remote machine
