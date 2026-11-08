@@ -108,6 +108,19 @@ function M.compose_size(max_width, avail_width, avail_height)
   return { width = width, height = math.min(avail_height, math.floor(width * rows_per_col + 0.5)) }
 end
 
+function M.compose_rect(columns, lines, cmdheight, reserved)
+  local avail_width = columns - 2 - reserved
+  if avail_width < 40 then avail_width = columns - 2 end
+  local size = M.compose_size(80, avail_width, lines - cmdheight - 2)
+  size.row, size.col = lines - cmdheight - size.height - 2, 0
+  return size
+end
+
+-- getmousepos counts a float's border as row 1; nvim-notify's default render puts the right title on the next row
+function M.on_close_button(pos, width)
+  return pos.winrow <= 2 and pos.wincol >= width - 2
+end
+
 function M.model_label(argv)
   local function flag(name)
     for i, arg in ipairs(argv) do

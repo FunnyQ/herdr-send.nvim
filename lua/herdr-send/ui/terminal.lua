@@ -23,6 +23,11 @@ local function open_win()
   vim.cmd.startinsert()
 end
 
+function M.reserved()
+  if not (state and vim.api.nvim_win_is_valid(state.win)) or state.zoomed then return 0 end
+  return vim.api.nvim_win_get_width(state.win) + 2
+end
+
 function M.show()
   if not (state and vim.api.nvim_buf_is_valid(state.buf)) then return false end
   if vim.api.nvim_win_is_valid(state.win) then

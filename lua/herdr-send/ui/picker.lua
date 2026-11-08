@@ -115,6 +115,7 @@ local function pick(sel, draft, action)
         vim.cmd("normal! zb")
       end)
     end,
+    on_show = function(picker) vim.w[picker.list.win.win].herdr_send_busy = true end,
     sort = { fields = { "score:desc", "idx" } },
     actions = {
       space_prev = function(picker) switch(picker, -1) end,

@@ -1,21 +1,21 @@
 local config = require("herdr-send.config")
 local core = require("herdr-send.core")
 local hc = require("herdr-send.hc")
+local terminal = require("herdr-send.ui.terminal")
 
 return function(item, lines, back)
   local send_keys, back_key, close_key = core.keys(config.options.send_key), config.options.back_key, config.options.close_key
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].filetype = "markdown"
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-  local size = core.compose_size(80, vim.o.columns - 2, vim.o.lines - vim.o.cmdheight - 2)
-  local width, height = size.width, size.height
+  local rect = core.compose_rect(vim.o.columns, vim.o.lines, vim.o.cmdheight, terminal.reserved())
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor", style = "minimal", border = "rounded",
-    width = width, height = height,
-    row = math.floor((vim.o.lines - height) / 2), col = math.floor((vim.o.columns - width) / 2),
+    width = rect.width, height = rect.height, row = rect.row, col = rect.col,
     title = (" → %s · %s "):format(item.agent, item.tab), title_pos = "center",
     footer = (" %s send · %s agents · %s cancel "):format(send_keys[1], back_key, close_key), footer_pos = "center",
   })
+  vim.w[win].herdr_send_busy = true
   vim.wo[win].wrap = true
   vim.wo[win].linebreak = true
   vim.api.nvim_win_set_cursor(win, { #lines, 0 })

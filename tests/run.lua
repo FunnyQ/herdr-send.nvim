@@ -136,6 +136,17 @@ eq("compose_size caps width on a large editor", M.compose_size(80, 198, 100), { 
 eq("compose_size shrinks width to fit height", M.compose_size(80, 198, 20), { width = 53, height = 20 })
 eq("compose_size shrinks to a narrow editor", M.compose_size(80, 50, 100), { width = 50, height = 19 })
 
+eq("compose_rect sits at the bottom left", M.compose_rect(200, 50, 1, 0), { width = 80, height = 30, row = 17, col = 0 })
+eq("compose_rect leaves the reserved right columns free", M.compose_rect(150, 50, 1, 82),
+  { width = 66, height = 25, row = 22, col = 0 })
+eq("compose_rect ignores a reservation that leaves under 40 columns", M.compose_rect(110, 50, 1, 82),
+  { width = 80, height = 30, row = 17, col = 0 })
+
+eq("on_close_button hits the header end", M.on_close_button({ winrow = 2, wincol = 18 }, 20), true)
+eq("on_close_button hits the top right border", M.on_close_button({ winrow = 1, wincol = 22 }, 20), true)
+eq("on_close_button misses the title", M.on_close_button({ winrow = 2, wincol = 16 }, 20), false)
+eq("on_close_button misses the body", M.on_close_button({ winrow = 3, wincol = 20 }, 20), false)
+
 eq("split_lines keeps a partial line for later", { M.split_lines("ab", "c\nde\nf") }, { { "abc", "de" }, "f" })
 eq("split_lines without newline", { M.split_lines("", "abc") }, { {}, "abc" })
 

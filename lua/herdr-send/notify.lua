@@ -93,11 +93,20 @@ local function body_for(view)
   return core.last_reply(lines)
 end
 
+local function notify_config()
+  local ok, cfg = pcall(function() return require("notify")._config() end)
+  return ok and cfg or nil
+end
+
 -- mirrors nvim-notify's wrapped-default width, which splits lines by byte count
 local function notify_width()
-  local ok, max = pcall(function() return require("notify")._config().max_width() end)
+  local cfg = notify_config()
   local columns = vim.o.columns
-  return math.max(10, math.min(ok and max or math.floor(columns * 0.3), columns - 1))
+  return math.max(10, math.min(cfg and cfg.max_width() or math.floor(columns * 0.3), columns - 1))
+end
+
+local function busy()
+  return vim.iter(vim.api.nvim_list_wins()):any(function(w) return vim.w[w].herdr_send_busy end)
 end
 
 local function as_markdown(win)
@@ -111,6 +120,7 @@ local function linger(base, markdown)
   local win, deadline
   base.timeout = 100
   base.keep = function()
+    if busy() then deadline = nil end
     return not deadline or vim.uv.now() < deadline or vim.api.nvim_get_current_win() == win
   end
   base.on_open = function(w)
@@ -118,12 +128,19 @@ local function linger(base, markdown)
     if markdown then as_markdown(w) end
     local ns = vim.on_key(function(key)
       local name = vim.fn.keytrans(key)
-      if deadline or name:find("MouseMove") then return end
+      if name:find("MouseMove") then return end
       vim.schedule(function()
-        if deadline or not vim.api.nvim_win_is_valid(win) or vim.api.nvim_get_current_win() == win then return end
+        if not vim.api.nvim_win_is_valid(win) then return end
         if name:find("Mouse") or name:find("ScrollWheel") or name:find("Drag") or name:find("Release") then
-          if vim.fn.getmousepos().winid == win then return end
+          local pos = vim.fn.getmousepos()
+          if pos.winid == win then
+            if name == "<LeftMouse>" and core.on_close_button(pos, vim.api.nvim_win_get_width(win)) then
+              vim.api.nvim_win_close(win, true)
+            end
+            return
+          end
         end
+        if deadline or busy() or vim.api.nvim_get_current_win() == win then return end
         deadline = vim.uv.now() + require("herdr-send.config").options.notify_linger_ms
       end)
     end)
@@ -139,6 +156,8 @@ return function(view)
     local reply = body_for(view)
     vim.schedule(function()
       local base = { title = view.agent .. " done" }
+      local cfg = notify_config()
+      if cfg then base.title = { base.title, vim.fn.strftime(cfg.time_formats().notification) .. " [X]" } end
       local body = "done"
       if reply then
         body = vim.trim(table.concat(core.wrap_markdown(reply, notify_width()), "\n"))
