@@ -34,7 +34,7 @@ The plugin binds no global keys. Bind `send`, `send_selection`, and `attach` you
 
 1. Press your key in normal mode to write a plain message, or in visual mode to start it with `@path#Lstart-end`. A selection inside one line starts it with `@path`.
 2. Press `h`/`l` or `<Left>`/`<Right>` to switch space. Pick an agent with `j`/`k` and `<CR>`. The agent you last sent to sits at the top of its space and carries a `last sent` chip. Press `i` to search. Each row shows the agent, its `model/effort`, tab, status, machine, and terminal id. The preview shows the agent's current screen. When the space Neovim runs in holds exactly one agent, the picker is skipped and step 3 opens directly.
-3. Write the message. From visual mode, the first line holds the reference: a cwd-relative path for a local agent in the current space, an absolute path for any other agent. Edit or delete it as needed.
+3. Write the message in the window at the bottom left. When the attach window is open and not zoomed, the message window narrows to stay clear of it, unless that leaves under 40 columns. From visual mode, the first line holds the reference: a cwd-relative path for a local agent in the current space, an absolute path for any other agent. Edit or delete it as needed.
 4. Press a `send_key` to send, or `close_key` to cancel. Press `back_key` in normal mode to return to the picker with the message kept. When the first line is still the untouched reference, it is rewritten for the agent you pick next.
 
 ### New agent
@@ -69,7 +69,9 @@ The first `status()` call starts one `hc events` stream in the background. Each 
 
 When the relevant agent goes from `working` to `done`, herdr-send calls `vim.notify` with the reply, titled `<agent> done`. A permission prompt (`blocked`) does not count as done.
 
-The notification stays open until you act outside it. Focusing it, typing in it, and scrolling over it do not count. The key that leaves it counts. After the first other key or mouse action, it closes `notify_linger_ms` later. It stays open while it has focus.
+The notification stays open until you act outside it. Focusing it, typing in it, and scrolling over it do not count. The key that leaves it counts. After the first other key or mouse action, it closes `notify_linger_ms` later. It stays open while it has focus. While the picker or the message window of `send` is open, keys do not count, and a countdown already running stops.
+
+With nvim-notify's default render, the header ends with `[X]` after the time. Click it to close the notification at once. To close it from a key, map `require("notify").dismiss({ silent = true, pending = true })`, which closes every notification.
 
 For a local Claude Code agent, the body is the text of the last assistant message in its transcript under `~/.claude/projects/`, in full. The notification window gets filetype `markdown` and `wrap`, so treesitter and render-markdown.nvim render it like a buffer. The body is pre-wrapped to nvim-notify's `max_width` at spaces and between CJK characters, without splitting inline code or bold. For other harnesses and remote agents, the body is `done`.
 
