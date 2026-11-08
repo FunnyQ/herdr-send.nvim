@@ -19,6 +19,19 @@ function M.chip(label, kind, width)
   }
 end
 
+function M.pill(label, hl)
+  local body = "HerdrSendPill" .. hl
+  return { { "\u{e0b6}", body .. "Cap" }, { " " .. label .. " ", body }, { "\u{e0b4}", body .. "Cap" } }
+end
+
+function M.set_pill_hl(hl)
+  local function bg(name) return vim.api.nvim_get_hl(0, { name = name, link = false }).bg end
+  local border = bg("FloatBorder") or bg("NormalFloat")
+  vim.api.nvim_set_hl(0, "HerdrSendPill" .. hl .. "Cap", { fg = bg(hl) or border, bg = border, blend = 0 })
+  vim.api.nvim_set_hl(0, "HerdrSendPill" .. hl,
+    vim.tbl_extend("force", vim.api.nvim_get_hl(0, { name = hl, link = false }), { blend = 0 }))
+end
+
 function M.tab_chunks(names, idx, width)
   local function w(i) return vim.fn.strdisplaywidth(names[i]) + 2 end
   local lo, hi, used = idx, idx, w(idx)

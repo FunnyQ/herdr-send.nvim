@@ -102,6 +102,18 @@ eq("chip wraps a label in slanted caps", render.chip("omarchy", "Remote", 9), {
   { " omarchy   ", "HerdrSendChipRemote" },
   { "\u{e0bc}", "HerdrSendChipRemoteCap" },
 })
+eq("pill wraps a label in round caps", render.pill("send", "FloatFooter"), {
+  { "\u{e0b6}", "HerdrSendPillFloatFooterCap" },
+  { " send ", "HerdrSendPillFloatFooter" },
+  { "\u{e0b4}", "HerdrSendPillFloatFooterCap" },
+})
+vim.api.nvim_set_hl(0, "FloatBorder", { fg = 0x1abc9c, bg = 0x202d3a })
+vim.api.nvim_set_hl(0, "FloatTitle", { fg = 0x202d3a, bg = 0x1abc9c })
+render.set_pill_hl("FloatTitle")
+eq("pill caps stay opaque under winblend", vim.api.nvim_get_hl(0, { name = "HerdrSendPillFloatTitleCap" }),
+  { fg = 0x1abc9c, bg = 0x202d3a, blend = 0 })
+eq("pill body stays opaque under winblend", vim.api.nvim_get_hl(0, { name = "HerdrSendPillFloatTitle" }),
+  { fg = 0x202d3a, bg = 0x1abc9c, blend = 0 })
 eq("tab_chunks draws rectangles and marks the active space", render.tab_chunks({ "p", "work" }, 2, 80), {
   { " p ", "HerdrSendChipTab" }, { " ", "FloatTitle" }, { " work ", "HerdrSendChipTabActive" },
 })
@@ -132,15 +144,19 @@ eq("with_new_agents skips a current space that has agents",
 eq("with_new_agents skips outside herdr-app", M.with_new_agents({ other }, nil, new), { other })
 eq("with_new_agents skips when no harness is installed", M.with_new_agents({ other }, "p", {}), { other })
 
-eq("compose_size caps width on a large editor", M.compose_size(80, 198, 100), { width = 80, height = 30 })
-eq("compose_size shrinks width to fit height", M.compose_size(80, 198, 20), { width = 53, height = 20 })
-eq("compose_size shrinks to a narrow editor", M.compose_size(80, 50, 100), { width = 50, height = 19 })
+eq("compose_size caps width on a large editor", M.compose_size(80, 198, 100), { width = 80, height = 20 })
+eq("compose_size shrinks width to fit height", M.compose_size(80, 198, 15), { width = 60, height = 15 })
+eq("compose_size shrinks to a narrow editor", M.compose_size(80, 50, 100), { width = 50, height = 13 })
 
-eq("compose_rect sits at the bottom left", M.compose_rect(200, 50, 1, 0), { width = 80, height = 30, row = 17, col = 0 })
-eq("compose_rect leaves the reserved right columns free", M.compose_rect(150, 50, 1, 82),
-  { width = 66, height = 25, row = 22, col = 0 })
-eq("compose_rect ignores a reservation that leaves under 40 columns", M.compose_rect(110, 50, 1, 82),
-  { width = 80, height = 30, row = 17, col = 0 })
+eq("compose_rect sits at the bottom left", M.compose_rect(200, 50, 1, 0, 0, 0), { width = 80, height = 20, row = 27, col = 0 })
+eq("compose_rect leaves the reserved right columns free", M.compose_rect(150, 50, 1, 82, 0, 0),
+  { width = 66, height = 17, row = 30, col = 0 })
+eq("compose_rect ignores a reservation that leaves under 40 columns", M.compose_rect(110, 50, 1, 82, 0, 0),
+  { width = 80, height = 20, row = 27, col = 0 })
+eq("compose_rect clears the gutter and statusline", M.compose_rect(200, 50, 1, 0, 6, 1),
+  { width = 80, height = 20, row = 26, col = 6 })
+eq("compose_rect shrinks to fit beside the gutter", M.compose_rect(150, 50, 1, 82, 6, 1),
+  { width = 60, height = 15, row = 31, col = 6 })
 
 eq("on_close_button hits the header end", M.on_close_button({ winrow = 2, wincol = 18 }, 20), true)
 eq("on_close_button hits the top right border", M.on_close_button({ winrow = 1, wincol = 22 }, 20), true)

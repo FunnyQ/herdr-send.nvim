@@ -1,6 +1,7 @@
 local config = require("herdr-send.config")
 local core = require("herdr-send.core")
 local hc = require("herdr-send.hc")
+local render = require("herdr-send.ui.render")
 local terminal = require("herdr-send.ui.terminal")
 
 return function(item, lines, back)
@@ -8,14 +9,21 @@ return function(item, lines, back)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.bo[buf].filetype = "markdown"
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-  local rect = core.compose_rect(vim.o.columns, vim.o.lines, vim.o.cmdheight, terminal.reserved())
+  local corner = vim.fn.getwininfo(vim.api.nvim_win_call(vim.fn.win_getid(vim.fn.winnr("1000h")),
+    function() return vim.fn.win_getid(vim.fn.winnr("1000j")) end))[1]
+  local rect = core.compose_rect(vim.o.columns, vim.o.lines, vim.o.cmdheight, terminal.reserved(),
+    corner.textoff, vim.o.lines - vim.o.cmdheight - corner.winrow - corner.height + 1)
+  render.set_pill_hl("FloatTitle")
+  render.set_pill_hl("FloatFooter")
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor", style = "minimal", border = "rounded",
     width = rect.width, height = rect.height, row = rect.row, col = rect.col,
-    title = (" → %s · %s "):format(item.agent, item.tab), title_pos = "center",
-    footer = (" %s send · %s agents · %s cancel "):format(send_keys[1], back_key, close_key), footer_pos = "center",
+    title = render.pill(("→ %s · %s"):format(item.agent, item.tab), "FloatTitle"), title_pos = "center",
+    footer = render.pill(("%s send · %s agents · %s cancel"):format(send_keys[1], back_key, close_key), "FloatFooter"),
+    footer_pos = "center",
   })
   vim.w[win].herdr_send_busy = true
+  vim.wo[win].winblend = config.options.winblend
   vim.wo[win].wrap = true
   vim.wo[win].linebreak = true
   vim.api.nvim_win_set_cursor(win, { #lines, 0 })

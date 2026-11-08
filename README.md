@@ -9,7 +9,7 @@ The picker groups agents by herdr-app space, on this machine and on remote `hc` 
 - Neovim 0.11 or later
 - `hc` (herdr-core) on `PATH`, and Neovim running inside a herdr-app terminal
 - [snacks.nvim](https://github.com/folke/snacks.nvim) with the picker enabled
-- A Nerd Font, for the machine chip edges
+- A Nerd Font, for the machine chip edges and the rounded window labels
 
 ## Install
 
@@ -88,6 +88,7 @@ Set `notify` to pass extra `vim.notify` opts to the reply notification only. Its
   close_key = "<C-q>",                                     -- closes the message window and the attach window; the agent never receives this key
   toggle_key = "<C-CR>",                                   -- once hides the attach window, twice within `double_tap_ms` toggles full editor width; the agent never receives this key
   double_tap_ms = 190,                                     -- max milliseconds between two `toggle_key` presses to zoom; a single press hides after this delay
+  winblend = 8,                                            -- 0-100, pseudo-transparency of the message and attach windows; blends with the text beneath
   chip = {                       -- highlight groups whose background colors each chip
     local_hl = "DiffAdd",          -- machine chip, this machine
     remote_hl = "DiffChange",      -- machine chip, remote machine

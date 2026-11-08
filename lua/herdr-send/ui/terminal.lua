@@ -1,4 +1,5 @@
 local config = require("herdr-send.config")
+local render = require("herdr-send.ui.render")
 
 local M = {}
 local state
@@ -14,12 +15,17 @@ end
 
 local function open_win()
   local item = state.item
+  render.set_pill_hl("FloatTitle")
+  render.set_pill_hl("FloatFooter")
   state.win = vim.api.nvim_open_win(state.buf, true, vim.tbl_extend("force", geometry(), {
     border = "rounded",
-    title = (" %s · %s (%s) "):format(item.agent, item.tab, item.t.address), title_pos = "center",
-    footer = (" %s detach · %s hide · %s×2 zoom "):format(config.options.close_key, config.options.toggle_key,
-      config.options.toggle_key), footer_pos = "center",
+    title = render.pill(("%s · %s (%s)"):format(item.agent, item.tab, item.t.address), "FloatTitle"),
+    title_pos = "center",
+    footer = render.pill(("%s detach · %s hide · %s×2 zoom"):format(config.options.close_key,
+      config.options.toggle_key, config.options.toggle_key), "FloatFooter"),
+    footer_pos = "center",
   }))
+  vim.wo[state.win].winblend = config.options.winblend
   vim.cmd.startinsert()
 end
 

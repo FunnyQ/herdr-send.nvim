@@ -101,18 +101,19 @@ function M.retarget(lines, old_ref, new_ref)
 end
 
 -- a terminal cell is about twice as tall as it is wide, so 4:3 landscape is rows = cols * 3 / 4 / 2
-local rows_per_col = 3 / 4 / 2
+-- 4:3 on screen for herdr-app's cell, measured ~1:3; make the 3 an option if another font looks off
+local rows_per_col = 3 / 4 / 3
 
 function M.compose_size(max_width, avail_width, avail_height)
   local width = math.min(max_width, avail_width, math.floor(avail_height / rows_per_col))
   return { width = width, height = math.min(avail_height, math.floor(width * rows_per_col + 0.5)) }
 end
 
-function M.compose_rect(columns, lines, cmdheight, reserved)
-  local avail_width = columns - 2 - reserved
-  if avail_width < 40 then avail_width = columns - 2 end
-  local size = M.compose_size(80, avail_width, lines - cmdheight - 2)
-  size.row, size.col = lines - cmdheight - size.height - 2, 0
+function M.compose_rect(columns, lines, cmdheight, reserved, left, bottom)
+  local avail_width = columns - 2 - left - reserved
+  if avail_width < 40 then avail_width = columns - 2 - left end
+  local size = M.compose_size(80, avail_width, lines - cmdheight - bottom - 2)
+  size.row, size.col = lines - cmdheight - bottom - size.height - 2, left
   return size
 end
 

@@ -6,6 +6,7 @@ M.options = {
   close_key = "<C-q>",
   toggle_key = "<C-CR>",
   double_tap_ms = 190,
+  winblend = 8,
   chip = {
     local_hl = "DiffAdd",
     remote_hl = "DiffChange",
