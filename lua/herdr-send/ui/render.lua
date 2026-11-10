@@ -21,7 +21,7 @@ end
 
 function M.pill(label, hl)
   local body = "HerdrSendPill" .. hl
-  return { { "\u{e0b6}", body .. "Cap" }, { " " .. label .. " ", body }, { "\u{e0b4}", body .. "Cap" } }
+  return { { "\u{e0ba}", body .. "Cap" }, { " " .. label .. " ", body }, { "\u{e0bc}", body .. "Cap" } }
 end
 
 function M.set_pill_hl(hl)

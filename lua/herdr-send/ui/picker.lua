@@ -31,6 +31,12 @@ local function pick(sel, draft, action)
     local address = vim.json.decode(out).address
     terminal.open(vim.tbl_extend("force", core.parse({ address = address, agent = new.name, where = self_where }), { t = { address = address } }))
   end
+  local models, screens = {}, {}
+  local function model_of(t)
+    models[t.address] = models[t.address]
+      or core.model_label(vim.json.decode(hc.run({ "get", t.address, "--json" })).argv or {})
+    return models[t.address]
+  end
   local function open(item)
     if item.new then return spawn(item.new) end
     if action then return action(item) end
@@ -40,7 +46,7 @@ local function pick(sel, draft, action)
   end
   local only = not draft and core.only_agent(groups, current)
   if only then
-    open(vim.tbl_extend("force", core.parse(only), { t = only }))
+    open(vim.tbl_extend("force", core.parse(only), { t = only, model = model_of(only) }))
     return
   end
   local names = vim.tbl_map(function(g) return g.name end, groups)
@@ -56,12 +62,6 @@ local function pick(sel, draft, action)
   local function switch(picker, step)
     idx = (idx - 1 + step) % #groups + 1
     picker:refresh()
-  end
-  local models, screens = {}, {}
-  local function model_of(t)
-    models[t.address] = models[t.address]
-      or core.model_label(vim.json.decode(hc.run({ "get", t.address, "--json" })).argv or {})
-    return models[t.address]
   end
   local picker = Snacks.picker.pick({
     title = action and "Attach to agent" or "Send to agent",

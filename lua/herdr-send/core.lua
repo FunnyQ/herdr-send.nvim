@@ -122,6 +122,12 @@ function M.on_close_button(pos, width)
   return pos.winrow <= 2 and pos.wincol >= width - 2
 end
 
+function M.compose_title(item)
+  local title = ("→ %s · %s"):format(item.agent, item.tab)
+  if item.model and item.model ~= "-" then title = title .. " · " .. item.model end
+  return title
+end
+
 function M.model_label(argv)
   local function flag(name)
     for i, arg in ipairs(argv) do

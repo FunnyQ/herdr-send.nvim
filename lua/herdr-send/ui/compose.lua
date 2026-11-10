@@ -18,7 +18,7 @@ return function(item, lines, back)
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor", style = "minimal", border = "rounded",
     width = rect.width, height = rect.height, row = rect.row, col = rect.col,
-    title = render.pill(("→ %s · %s"):format(item.agent, item.tab), "FloatTitle"), title_pos = "center",
+    title = render.pill(core.compose_title(item), "FloatTitle"), title_pos = "center",
     footer = render.pill(("%s send · %s agents · %s cancel"):format(send_keys[1], back_key, close_key), "FloatFooter"),
     footer_pos = "center",
   })
@@ -42,7 +42,7 @@ return function(item, lines, back)
       return
     end
     hc.write_last(item.t.address)
-    vim.notify(("Sent to %s · %s (%s)"):format(item.agent, item.tab, item.t.address))
+    require("herdr-send.notify").close_all()
   end
   for _, key in ipairs(send_keys) do
     vim.keymap.set({ "n", "i" }, key, send, { buffer = buf })

@@ -102,10 +102,10 @@ eq("chip wraps a label in slanted caps", render.chip("omarchy", "Remote", 9), {
   { " omarchy   ", "HerdrSendChipRemote" },
   { "\u{e0bc}", "HerdrSendChipRemoteCap" },
 })
-eq("pill wraps a label in round caps", render.pill("send", "FloatFooter"), {
-  { "\u{e0b6}", "HerdrSendPillFloatFooterCap" },
+eq("pill wraps a label in slanted caps", render.pill("send", "FloatFooter"), {
+  { "\u{e0ba}", "HerdrSendPillFloatFooterCap" },
   { " send ", "HerdrSendPillFloatFooter" },
-  { "\u{e0b4}", "HerdrSendPillFloatFooterCap" },
+  { "\u{e0bc}", "HerdrSendPillFloatFooterCap" },
 })
 vim.api.nvim_set_hl(0, "FloatBorder", { fg = 0x1abc9c, bg = 0x202d3a })
 vim.api.nvim_set_hl(0, "FloatTitle", { fg = 0x202d3a, bg = 0x1abc9c })
@@ -130,6 +130,8 @@ eq("tab_chunks marks hidden tabs on both sides", render.tab_chunks({ "aaaa", "bb
 eq("model_label model and effort", M.model_label({ "env", "claude", "--model", "opus", "--effort", "low" }), "opus/low")
 eq("model_label equals form", M.model_label({ "codex", "--model=gpt-5" }), "gpt-5")
 eq("model_label ignores flags inside other tokens", M.model_label({ "env", "X=--model foo", "claude" }), "-")
+eq("compose_title adds the model", M.compose_title({ agent = "claude-code", tab = "main", model = "opus/medium" }), "→ claude-code · main · opus/medium")
+eq("compose_title skips a missing model", M.compose_title({ agent = "claude-code", tab = "main", model = "-" }), "→ claude-code · main")
 eq("model_label none", M.model_label({ "claude" }), "-")
 
 local new = { { name = "claude", cmd = { "claude" } } }
