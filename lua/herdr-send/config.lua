@@ -23,6 +23,8 @@ M.options = {
   filter = nil,
   notify_on_done = true,
   notify_linger_ms = 3000,
+  notify_max = 3,
+  notify_max_age_ms = 8 * 60 * 1000,
   notify = {},
 }
 

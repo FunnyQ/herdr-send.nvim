@@ -9,7 +9,7 @@ The picker groups agents by herdr-app space, on this machine and on remote `hc` 
 - Neovim 0.11 or later
 - `hc` (herdr-core) on `PATH`, and Neovim running inside a herdr-app terminal
 - [snacks.nvim](https://github.com/folke/snacks.nvim) with the picker enabled
-- A Nerd Font, for the machine chip edges and the rounded window labels
+- A Nerd Font, for the machine chip edges and the slanted window labels
 
 ## Install
 
@@ -69,7 +69,7 @@ The first `status()` call starts one `hc events` stream in the background. Each 
 
 When the relevant agent goes from `working` to `done`, herdr-send calls `vim.notify` with the reply, titled `<agent> done`. A permission prompt (`blocked`) does not count as done.
 
-The notification stays open until you act outside it. Focusing it, typing in it, and scrolling over it do not count. The key that leaves it counts. After the first other key or mouse action, it closes `notify_linger_ms` later. It stays open while it has focus. While the picker or the message window of `send` is open, keys do not count, and a countdown already running stops.
+The notification stays open until you act outside it. Focusing it, typing in it, and scrolling over it do not count. The key that leaves it counts. After the first other key or mouse action, it closes `notify_linger_ms` later. It stays open while it has focus. While the picker or the message window of `send` is open, keys do not count, and a countdown already running stops. When a new reply notification opens and more than `notify_max` are open, the oldest closes. Unless it has focus, a reply notification closes `notify_max_age_ms` after it opens, even if you never act outside it. Sending a message closes every open reply notification.
 
 With nvim-notify's default render, the header ends with `[X]` after the time. Click it to close the notification at once. To close it from a key, map `require("notify").dismiss({ silent = true, pending = true })`, which closes every notification.
 
@@ -105,6 +105,8 @@ Set `notify` to pass extra `vim.notify` opts to the reply notification only. Its
   filter = nil,                                            -- function(terminal) -> boolean, extra filter on `hc ls --json` entries
   notify_on_done = true,                                   -- vim.notify the reply when the relevant agent finishes a turn
   notify_linger_ms = 3000,                                 -- after your first action outside the reply notification, close it this many milliseconds later
+  notify_max = 3,                                          -- keep at most this many reply notifications open; the oldest closes first
+  notify_max_age_ms = 8 * 60 * 1000,                       -- close a reply notification this many milliseconds after it opens, unless it has focus
   notify = {},                                             -- extra vim.notify opts for the reply notification, e.g. { render = "compact" }
 }
 ```

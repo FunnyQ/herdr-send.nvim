@@ -115,16 +115,31 @@ local function as_markdown(win)
   vim.wo[win].wrap = true
 end
 
+local open_wins = {}
+
+local function cap_open(win)
+  table.insert(open_wins, win)
+  local max = require("herdr-send.config").options.notify_max
+  while #open_wins > max do
+    local oldest = table.remove(open_wins, 1)
+    if vim.api.nvim_win_is_valid(oldest) then vim.api.nvim_win_close(oldest, true) end
+  end
+end
+
 -- nvim-notify asks keep() each time timeout fires, so a short timeout polls it
 local function linger(base, markdown)
   local win, deadline
+  local expires = vim.uv.now() + require("herdr-send.config").options.notify_max_age_ms
   base.timeout = 100
   base.keep = function()
+    if vim.api.nvim_get_current_win() == win then return true end
+    if vim.uv.now() >= expires then return false end
     if busy() then deadline = nil end
-    return not deadline or vim.uv.now() < deadline or vim.api.nvim_get_current_win() == win
+    return not deadline or vim.uv.now() < deadline
   end
   base.on_open = function(w)
     win = w
+    cap_open(w)
     if markdown then as_markdown(w) end
     local ns = vim.on_key(function(key)
       local name = vim.fn.keytrans(key)
@@ -146,12 +161,24 @@ local function linger(base, markdown)
     end)
     vim.api.nvim_create_autocmd("WinClosed", {
       pattern = tostring(w), once = true,
-      callback = function() vim.on_key(nil, ns) end,
+      callback = function()
+        vim.on_key(nil, ns)
+        open_wins = vim.tbl_filter(function(o) return o ~= w end, open_wins)
+      end,
     })
   end
 end
 
-return function(view)
+local M = {}
+
+function M.close_all()
+  for _, win in ipairs(open_wins) do
+    if vim.api.nvim_win_is_valid(win) then vim.api.nvim_win_close(win, true) end
+  end
+  open_wins = {}
+end
+
+function M.done(view)
   coroutine.wrap(function()
     local reply = body_for(view)
     vim.schedule(function()
@@ -170,3 +197,5 @@ return function(view)
     end)
   end)()
 end
+
+return M
