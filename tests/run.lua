@@ -275,4 +275,40 @@ local user_open = function() end
 eq("reply_opts uses the user on_open alone when base has none",
   M.reply_opts({}, { on_open = user_open }).on_open, user_open)
 
+do
+  package.loaded["herdr-send.ui.picker"] = function() end
+  local hs = require("herdr-send")
+  local config = require("herdr-send.config")
+  local dir = vim.fn.tempname()
+  vim.fn.mkdir(dir .. "/.flow-note", "p")
+  local function edited(name)
+    local path = dir .. "/" .. name
+    vim.fn.writefile({ "old" }, path)
+    vim.cmd.edit(path)
+    vim.api.nvim_buf_set_lines(0, 0, -1, false, { "new" })
+    return path
+  end
+
+  config.options.save_before_send = nil
+  local path = edited("plain.md")
+  hs.send()
+  eq("send leaves the buffer unsaved without save_before_send", vim.fn.readfile(path), { "old" })
+
+  config.options.save_before_send = function(buf)
+    return vim.api.nvim_buf_get_name(buf):find("/%.flow%-note/") ~= nil
+  end
+  path = edited("other.md")
+  hs.send()
+  eq("send leaves the buffer unsaved when save_before_send returns false", vim.fn.readfile(path), { "old" })
+
+  path = edited(".flow-note/n.md")
+  hs.send()
+  eq("send saves the buffer when save_before_send returns true", vim.fn.readfile(path), { "new" })
+
+  path = edited(".flow-note/s.md")
+  hs.send_selection()
+  eq("send_selection saves the buffer when save_before_send returns true", vim.fn.readfile(path), { "new" })
+  vim.cmd("silent! %bwipeout!")
+end
+
 os.exit(failures == 0 and 0 or 1)

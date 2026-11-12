@@ -49,6 +49,18 @@ Bind `attach` to the same key as `toggle_key` to show and hide the window with o
 
 `hc send` pastes the text and presses Enter, so the agent starts its turn at once.
 
+### Save before send
+
+Set `save_before_send` so the agent reads what you see. When it returns true for the current buffer, `send` and `send_selection` run `:update` first, which writes the buffer only when it has unsaved changes. Leave it `nil` to never save.
+
+```lua
+opts = {
+  save_before_send = function(buf)
+    return vim.api.nvim_buf_get_name(buf):find("/%.flow%-note/") ~= nil
+  end,
+}
+```
+
 ### Statusline
 
 Call `status()` for a short string with the state of the relevant agent, such as `● working` or `● idle`, or `""` when there is none. Call `status_hl()` for the matching highlight group, or `nil`.
@@ -103,6 +115,7 @@ Set `notify` to pass extra `vim.notify` opts to the reply notification only. Its
   },
   split_machines = false,                                  -- true: a remote space gets its own `space@machine` tab
   filter = nil,                                            -- function(terminal) -> boolean, extra filter on `hc ls --json` entries
+  save_before_send = nil,                                  -- function(bufnr) -> boolean; true runs `:update` on the current buffer before `send` and `send_selection`
   notify_on_done = true,                                   -- vim.notify the reply when the relevant agent finishes a turn
   notify_linger_ms = 3000,                                 -- after your first action outside the reply notification, close it this many milliseconds later
   notify_max = 3,                                          -- keep at most this many reply notifications open; the oldest closes first

@@ -5,13 +5,20 @@ local status = require("herdr-send.status")
 
 local M = {}
 
+local function save_before_send()
+  local wants = config.options.save_before_send
+  if wants and wants(vim.api.nvim_get_current_buf()) then vim.cmd("silent update") end
+end
+
 function M.send()
+  save_before_send()
   pick(nil)
 end
 
 function M.send_selection()
   local a, b = vim.fn.line("v"), vim.fn.line(".")
   vim.api.nvim_feedkeys(vim.keycode("<Esc>"), "nx", false)
+  save_before_send()
   pick({ rel = vim.fn.expand("%:."), abs = vim.fn.expand("%:p"), a = a, b = b })
 end
 
